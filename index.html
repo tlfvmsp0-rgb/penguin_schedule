@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>펭귄 일정표 📋 — 전체 기록</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EDEAE3;--card:#FAFAF7;--night:#17233A;--dawn:#2C3F6A;--green:#3A6030;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:#1A1A1A}
+
+/* ── 헤더 ── */
+#hdr{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,#1A3A1A 0%,#243A28 100%);
+  color:#fff;padding:14px 16px 12px;box-shadow:0 4px 18px rgba(0,0,0,.35)
+}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.hdr-title{font-family:'DM Serif Display',serif;font-size:20px}
+.hdr-sub{font-size:10px;opacity:.5;letter-spacing:2px;margin-bottom:6px}
+.today-chip{
+  background:rgba(126,200,160,.2);border:1px solid rgba(126,200,160,.4);
+  color:#7EC8A0;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+}
+.stat-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.stat{background:rgba(255,255,255,.1);padding:2px 10px;border-radius:20px;font-size:10px;color:#fff}
+.stat b{color:#7EC8A0}
+
+/* ── 본문 ── */
+#content{max-width:660px;margin:0 auto;padding:14px 12px 60px}
+
+/* ── 로딩·오류 상태 ── */
+.state-box{
+  text-align:center;padding:50px 20px;color:#888;
+  font-size:14px;line-height:1.8;
+}
+.state-box .icon{font-size:36px;margin-bottom:10px}
+
+/* ── 월 그룹 헤더 ── */
+.month-label{
+  font-size:9px;font-weight:700;letter-spacing:3px;color:#999;
+  padding:18px 4px 6px;text-transform:uppercase;
+}
+
+/* ── 날짜 카드 ── */
+.day-card{
+  display:flex;align-items:center;gap:14px;
+  background:var(--card);border:1.5px solid #D0CCC4;
+  border-radius:12px;padding:12px 16px;margin-bottom:8px;
+  cursor:pointer;text-decoration:none;color:inherit;
+  transition:border-color .2s,box-shadow .2s;
+}
+.day-card:hover{border-color:#4A7040;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+
+/* 오늘 강조 */
+.day-card.today{
+  background:#EDF4EC;border-color:#4A7040;border-width:2px;
+}
+.day-card.today .day-num{color:#2A6030}
+.today-badge{
+  font-size:9px;font-weight:700;background:#2A8040;color:#fff;
+  padding:1px 6px;border-radius:10px;margin-left:6px;vertical-align:middle;
+}
+
+/* 날짜 숫자 */
+.day-num-wrap{text-align:center;min-width:40px;flex-shrink:0}
+.day-num{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;color:#2C3F6A}
+.day-dow{font-size:9px;font-weight:700;color:#AAA;letter-spacing:1px;margin-top:2px}
+.day-dow.sat{color:#3060A0}
+.day-dow.sun{color:#A03030}
+
+/* 카드 오른쪽 */
+.day-info{flex:1;min-width:0}
+.day-date-full{font-size:11px;color:#999;margin-bottom:3px}
+.day-title{font-size:13px;font-weight:600;color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 화살표 */
+.day-arrow{color:#CCC;font-size:16px;flex-shrink:0}
+.day-card:hover .day-arrow{color:#4A7040}
+
+/* ── 설정 안내 박스 ── */
+.config-box{
+  background:#FFF8EC;border:2px dashed #D0B080;border-radius:12px;
+  padding:16px;margin-bottom:16px;font-size:12.5px;line-height:1.7;color:#555;
+}
+.config-box strong{color:#A04020}
+.config-box code{
+  background:#F0E8D8;padding:1px 5px;border-radius:4px;
+  font-family:monospace;font-size:12px;color:#603010;
+}
+
+/* ── 바닥글 ── */
+.footer{
+  text-align:center;margin-top:20px;padding:16px;
+  background:#1A3A1A;border-radius:11px;color:#7EC8A0;font-size:12px;
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="hdr-sub">PENGUIN SCHEDULE — ALL RECORDS</div>
+  <div class="hdr-top">
+    <div class="hdr-title">펭귄 일정표 📋</div>
+    <div class="today-chip" id="el-today">날짜 로딩중</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat">📅 총 기록: <b id="st-total">0</b>일</div>
+    <div class="stat">🗓️ 이번 달: <b id="st-month">0</b>일</div>
+    <div class="stat">🔥 연속: <b id="st-streak">0</b>일</div>
+  </div>
+</div>
+
+<div id="content">
+  <div class="state-box" id="state-loading">
+    <div class="icon">⏳</div>
+    일정 목록을 불러오는 중...
+  </div>
+</div>
+
+<script>
+// =========================================================================
+// ⚙️ 설정 영역 — GitHub 정보를 여기에 입력하세요
+// =========================================================================
+const GITHUB_CONFIG = {
+  username: "YOUR_GITHUB_USERNAME",   // ← 본인 GitHub 아이디
+  repo:     "YOUR_REPO_NAME",         // ← 레포지토리 이름 (예: penguin-schedule)
+};
+// =========================================================================
+
+// 요일 표기
+const DOW_KO  = ['일','월','화','수','목','금','토'];
+const DOW_EN  = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+const today = new Date();
+const todayStr = formatDate(today); // "2026-05-13"
+
+function formatDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// 오늘 표시
+document.getElementById('el-today').textContent =
+  `${today.getMonth()+1}월 ${today.getDate()}일 (${DOW_KO[today.getDay()]})`;
+
+// 파일 이름에서 날짜 파싱: "2026-05-13.html" → Date
+function parseFileName(name) {
+  const m = name.match(/^(\d{4})-(\d{2})-(\d{2})\.html$/);
+  if (!m) return null;
+  return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+}
+
+// 한국어 날짜 레이블
+function getMonthLabel(d) {
+  return `${d.getFullYear()}년 ${MONTHS_KO[d.getMonth()]}`;
+}
+
+// 연속 기록 계산
+function calcStreak(dates) {
+  if (!dates.length) return 0;
+  const sorted = [...dates].sort((a,b) => b-a); // 최신순
+  let streak = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = (sorted[i-1] - sorted[i]) / (1000*60*60*24);
+    if (diff === 1) streak++;
+    else break;
+  }
+  // 오늘 또는 어제가 포함돼 있어야 유효한 연속
+  const diffFromToday = (today - sorted[0]) / (1000*60*60*24);
+  return diffFromToday <= 1 ? streak : 0;
+}
+
+async function loadList() {
+  const content = document.getElementById('content');
+
+  // 설정 안내
+  if (GITHUB_CONFIG.username === 'YOUR_GITHUB_USERNAME') {
+    content.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'config-box';
+    box.innerHTML = `
+      <strong>⚙️ index.html 설정이 필요합니다</strong><br><br>
+      이 파일 상단의 <code>GITHUB_CONFIG</code> 블록에<br>
+      본인 GitHub 아이디와 레포지토리 이름을 입력해주세요.<br><br>
+      <code>username: "your-github-id"</code><br>
+      <code>repo: "penguin-schedule"</code>
+    `;
+    content.appendChild(box);
+    return;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/contents/`;
+
+  try {
+    const res = await fetch(apiUrl, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    if (!res.ok) throw new Error(`GitHub API 오류: ${res.status}`);
+    const files = await res.json();
+
+    // 날짜 형식 파일만 필터링 (YYYY-MM-DD.html)
+    const dayFiles = files
+      .map(f => ({ name: f.name, date: parseFileName(f.name), path: f.name }))
+      .filter(f => f.date !== null)
+      .sort((a,b) => b.date - a.date); // 최신순 정렬
+
+    content.innerHTML = '';
+
+    if (dayFiles.length === 0) {
+      content.innerHTML = `
+        <div class="state-box">
+          <div class="icon">📭</div>
+          아직 날짜별 일정 파일이 없습니다.<br>
+          <span style="font-size:12px;color:#AAA;">AI가 채운 파일을 YYYY-MM-DD.html 형식으로 올려보세요.</span>
+        </div>`;
+      return;
+    }
+
+    // 통계
+    const dates = dayFiles.map(f => f.date);
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    const monthCount = dates.filter(d => d.getMonth()===thisMonth && d.getFullYear()===thisYear).length;
+    const streak = calcStreak(dates);
+    document.getElementById('st-total').textContent = dayFiles.length;
+    document.getElementById('st-month').textContent = monthCount;
+    document.getElementById('st-streak').textContent = streak;
+
+    // 월별 그룹핑
+    let lastMonthLabel = '';
+    dayFiles.forEach(f => {
+      const monthLabel = getMonthLabel(f.date);
+      if (monthLabel !== lastMonthLabel) {
+        const ml = document.createElement('div');
+        ml.className = 'month-label';
+        ml.textContent = monthLabel;
+        content.appendChild(ml);
+        lastMonthLabel = monthLabel;
+      }
+
+      const isToday = formatDate(f.date) === todayStr;
+      const dow = f.date.getDay();
+      const dowKo = DOW_KO[dow];
+      const dowEn = DOW_EN[dow];
+      const isSat = dow === 6, isSun = dow === 0;
+
+      const card = document.createElement('a');
+      card.className = 'day-card' + (isToday ? ' today' : '');
+      card.href = f.path;
+
+      card.innerHTML = `
+        <div class="day-num-wrap">
+          <div class="day-num">${f.date.getDate()}</div>
+          <div class="day-dow ${isSat?'sat':isSun?'sun':''}">${dowEn}</div>
+        </div>
+        <div class="day-info">
+          <div class="day-date-full">
+            ${f.date.getFullYear()}.${String(f.date.getMonth()+1).padStart(2,'0')}.${String(f.date.getDate()).padStart(2,'0')} ${dowKo}요일
+            ${isToday ? '<span class="today-badge">TODAY</span>' : ''}
+          </div>
+          <div class="day-title">오늘의 일정표 보기</div>
+        </div>
+        <div class="day-arrow">›</div>
+      `;
+
+      content.appendChild(card);
+    });
+
+    // 바닥글
+    const ft = document.createElement('div');
+    ft.className = 'footer';
+    ft.innerHTML = `📋 펭귄 일정표 · 총 ${dayFiles.length}일의 기록`;
+    content.appendChild(ft);
+
+  } catch(e) {
+    content.innerHTML = `
+      <div class="state-box">
+        <div class="icon">⚠️</div>
+        목록을 불러오지 못했습니다.<br>
+        <span style="font-size:12px;color:#AAA;">${e.message}</span><br><br>
+        <span style="font-size:12px;">레포지토리가 공개(Public) 상태인지 확인해보세요.</span>
+      </div>`;
+  }
+}
+
+loadList();
+</script>
+</body>
+</html>
