@@ -200,7 +200,7 @@ const S =[
    title:'☀️ 복도 창문 햇빛 샤워 & 스트레칭',
    items:[
      '집 앞 복도로 나가 방충망 없는 창문 열고 바깥 공기 마시기',
-     '【팩트】 15분 간접광 노출로 일주기 리듬 리셋 행동 완료',
+     '【사실】 15분 간접광 노출로 일주기 리듬 리셋 행동 완료',
      '창밖을 보며 목·어깨 돌리기 및 가슴 활짝 펴기',
      '까치발 들기(종아리 펌핑) 30회 반복 (하체 혈액순환)',
    ]},
@@ -243,7 +243,7 @@ const S =[
    items:[
      '토스 사진 묘사 템플릿 눈으로 훑기',
      '집이라는 이점을 살려 최대한 크고 당당한 목소리로 발화 시작',
-     '【팩트】 아침 식사를 일찍 마친 후 바로 책상에 앉아 팩트를 쌓음',
+     '【사실】 아침 식사를 일찍 마친 후 바로 책상에 앉아 사실】를 쌓음',
    ]},
 
   {id:'b1', time:'08:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ①', items:SB},
@@ -362,7 +362,7 @@ const S =[
   {id:'p8', time:'15:55', dur:'25분', cat:'study', pomo:8,
    title:'뽀모도로 08 — 🎧 모의고사 피드백',
    items:[
-     '방금 한 모의고사 녹음본 듣고 억양/강세 팩트 체크',
+     '방금 한 모의고사 녹음본 듣고 억양/강세 사실】 체크',
      '버벅인 문제 1개 골라 다시 스피킹 해보기',
    ]},
 
@@ -383,7 +383,7 @@ const S =[
    title:'뽀모도로 10 — 오후 진도 갈무리 (보너스 도장 달성!)',
    items:[
      '오늘 하루 헌혈의 피로를 이기고 목표인 10뽀모를 채운 나 자신 칭찬',
-     '【팩트】 <strong>보너스 도장 +1</strong> 획득 조건 달성!',
+     '【사실】 보너스 도장 +1 획득 조건 달성!',
      '데이터 백업 후 17:30 저녁 식사를 위한 세팅',
    ]},
 
@@ -436,7 +436,7 @@ const S =[
    items:[
      '【선택 A】 1시간 동안 아무 죄책감 없이 즐겁게 게임하기 (체크박스 비워두기)',
      '【선택 B】 게임 대신 뽀모도로 진행 시, 맨 아래 [🆘 예비 뽀모도로] 구역에 가서 체크하기! (도장 2개 획득 할증 적용)',
-     '【마인드셋】 게임을 하든 공부를 하든, "내가 정해진 시간에 내 의지로 선택했다"는 팩트가 중요함.',
+     '【마인드셋】 게임을 하든 공부를 하든, "내가 정해진 시간에 내 의지로 선택했다"는 사실】가 중요함.',
    ]},
 
   /* ══ 취침 루틴 ══ */
@@ -476,7 +476,7 @@ const S =[
    items:[
      '내일 기상 알람 (06:30) 설정 확인',
      '내일 아침 챙겨 먹을 약(탈모+센트룸) 세팅해두기',
-     '스스로에게 "식사 텀을 완벽하게 계산해낸 천재적인 하루였다"고 팩트 칭찬하기',
+     '스스로에게 "식사 텀을 완벽하게 계산해낸 천재적인 하루였다"고 사실】 칭찬하기',
      '잡생각 끄고 꿀잠 자기',
    ]},
 
@@ -880,7 +880,7 @@ function render(){
 
     const body = document.createElement('div'); body.className = 'blk-body';
     b.items.forEach((item, i) => {
-      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【팩트\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
+      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【사실】\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
       const row = document.createElement(nc ? 'div' : 'label'); row.className = 'irow' + (nc ? ' nc' : ''); if (!nc) row.htmlFor = iid;
       if (nc){ row.innerHTML = `<span class="ibullet" style="color:${cs.dot}">•</span>`; }
       else {
@@ -996,7 +996,7 @@ document.getElementById('btnGithubExport').addEventListener('click', () => {
       if (b.dur) html += `<span class="bdur" style="background:${cs.dot}18;color:${cs.dot}">${b.dur}</span>`;
       html += `<span class="done-mark" style="display:${bA ? 'inline' : 'none'}">✅</span></div><div class="blk-body">`;
       
-      b.items.forEach(it => { const iC = !!chk[it.id]; const iW = /^(\【주의\】|\【팩트\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(it.t);
+      b.items.forEach(it => { const iC = !!chk[it.id]; const iW = /^(\【주의\】|\【사실】\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(it.t);
           html += `<label class="irow ${nc ? 'nc' : ''}" style="cursor:default;">`;
           if (nc) html += `<span class="ibullet" style="color:${cs.dot}">•</span>`; else html += `<input type="checkbox" disabled ${iC ? 'checked' : ''} style="margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:default;accent-color:${cs.dot}">`;
           html += `<span class="itxt ${iW ? 'warn' : ''} ${iC ? 'done' : ''}" style="color:${iW ? cs.tc : '#2A2010'};font-size:12.5px;line-height:1.55;">${it.t.replace(/【CBT】/g, '【마인드셋】')}</span></label>`;
