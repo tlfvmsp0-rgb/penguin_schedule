@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>펭귄의 공부 원칙 README 🧭</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* ── 디자인(CSS) 영역 (일정표 테마 완벽 동기화) ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EDEAE3;--card:#FAFAF7;--night:#17233A;--dawn:#2C3F6A;
+  --green:#3A6030;--orange:#C96A20;--blue:#2A6EA0;--red:#B03040;
+  --purple:#8040A0;--teal:#2A8070;--gray:#888;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:#1A1A1A}
+
+#hdr{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#17233A 0%,#2C3F6A 100%);
+  color:#fff;padding:15px 20px 15px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.hdr-row{display:flex;justify-content:space-between;align-items:center}
+.hdr-l .date-lbl{font-size:9px;letter-spacing:3px;opacity:.5;margin-bottom:2px}
+.hdr-l .title{font-family:'DM Serif Display',serif;font-size:18px;line-height:1.2}
+
+#content{max-width:660px;margin:0 auto;padding:15px 10px 60px}
+
+/* ⚠️ 대형 리셋 버튼 */
+.reset-btn-wrap {
+  background:#FFF2F2;
+  border:2px solid #E0B0B0;
+  border-radius:11px;
+  padding:15px;
+  margin-bottom:15px;
+  text-align:center;
+}
+.btn-reset-large {
+  width:100%;
+  padding:18px;
+  font-size:15px;
+  font-weight:700;
+  color:#fff;
+  background:var(--red);
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  box-shadow:0 4px 6px rgba(176,48,64,0.2);
+  display:block;
+}
+.btn-reset-large:hover {
+  background:#902030;
+  transform:translateY(-1px);
+}
+.btn-reset-large:active {
+  transform:translateY(1px);
+}
+
+/* 📊 뇌 과학 인지부하 가이드 카드 */
+.cognitive-guide {
+  background:#FAF8F5;
+  border:2px solid #D0C0B0;
+  border-radius:11px;
+  padding:16px;
+  margin-bottom:15px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.guide-title {
+  font-size:13.5px;
+  font-weight:700;
+  color:#885020;
+  margin-bottom:12px;
+  border-bottom:2px solid #E5D5C5;
+  padding-bottom:6px;
+}
+
+/* 강도별 테이블 */
+.cog-table {
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:12px;
+  font-size:11.5px;
+}
+.cog-table th, .cog-table td {
+  padding:8px;
+  text-align:left;
+  border-bottom:1px solid #EDEDE5;
+}
+.cog-table th {
+  background:#EFECE5;
+  color:#444;
+  font-weight:700;
+}
+.cog-table td strong {
+  font-size:12px;
+}
+
+/* 조합 예시 */
+.formula-box {
+  background:#FFFBF2;
+  border:1.5px dashed #E0C090;
+  border-radius:8px;
+  padding:12px;
+  font-size:11.5px;
+  line-height:1.6;
+}
+.formula-title {
+  font-weight:700;
+  color:var(--orange);
+  margin-bottom:5px;
+}
+
+/* 섹션 타이틀 */
+.sec{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#777;padding:14px 4px 5px;text-transform:uppercase}
+
+/* 카드 블록 */
+.blk{border-radius:11px;margin-bottom:10px;overflow:hidden;border:1.5px solid;background:var(--card);transition:opacity .25s}
+.blk-hdr{display:flex;align-items:center;gap:7px;padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.05)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.bcat{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;flex-shrink:0}
+.btitle{font-size:13px;font-weight:600;flex:1;line-height:1.35}
+
+/* 체크리스트 아이템 바디 */
+.blk-body{padding:10px 12px}
+.irow{display:flex;align-items:flex-start;gap:10px;padding:7px 0;cursor:pointer;border-bottom:1px solid rgba(0,0,0,0.03)}
+.irow:last-child{border-bottom:none}
+input[type=checkbox]{margin-top:3px;flex-shrink:0;width:15px;height:15px;cursor:pointer}
+.itxt{font-size:12.5px;line-height:1.6;transition:all .2s;color:#2A2010}
+.itxt.done{text-decoration:line-through;color:#BBBBBB}
+.itxt.warn{font-weight:500;color:var(--orange)}
+
+.footer{text-align:center;margin-top:20px;padding:16px;background:#17233A;border-radius:11px;color:#fff;font-size:11px;opacity:0.8}
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div id="hdr">
+  <div class="hdr-row">
+    <div class="hdr-l">
+      <div class="date-lbl">DAILY SELF-MONITORING</div>
+      <div class="title">공부 원칙 검증 README 🧭</div>
+    </div>
+    <div id="stats" style="font-size:12px; opacity:0.8;"></div>
+  </div>
+</div>
+
+<div id="content">
+
+  <!-- ⚠️ 대형 리셋 버튼 (안전장치 알림창 포함) -->
+  <div class="reset-btn-wrap">
+    <div style="font-size:11px; color:#A04040; font-weight:700; margin-bottom:8px;">⚠️ 다음 날 정산 시에만 사용하도록 설계된 안전 정지 구역</div>
+    <button class="btn-reset-large" id="btnResetAll">♻️ 모든 체크리스트 초기화하기</button>
+  </div>
+
+  <!-- 📊 뇌 과학 인지부하 가이드 카드 (테이블 및 수식) -->
+  <div class="cognitive-guide">
+    <div class="guide-title">🧠 뇌 과학 기반 인지부하 분류 및 한계치</div>
+    <table class="cog-table">
+      <thead>
+        <tr>
+          <th width="18%">강도 분류</th>
+          <th width="28%">절대 한계치</th>
+          <th width="54%">핵심 제약 조건 및 예외 조항</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--red)">고인지</strong></td>
+          <td><strong>최대 4시간 (9.6뽀모) </strong></td>
+          <td>파워냅 무관 절대 고정. <strong>4시간 전부 소모 시, 고인지 소모형 취미(전략 게임 등) 지양.</strong></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--orange)">중인지</strong></td>
+          <td><strong>최대 8시간 (19.2뽀모) </strong></td>
+          <td>파워냅(NSDR/낮잠) 적용 완료 시 <strong>9~10시간</strong>까지 유연하게 확장 허용.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--blue)">저인지</strong></td>
+          <td><strong>6~7시간 (~16.8뽀모) </strong></td>
+          <td>고지능자는 오히려 저강도 위주 단순 지루한 작업에 약함. 중강도를 섞을 것. 파워냅 시 상승 가능. </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="formula-box">
+      <div class="formula-title">⚖️ 인지 강도가 섞였을 때의 유동적 조합 한계선 예시</div>
+      <strong>[고인지 4시간 + 중인지 2시간 + 저인지 1시간 = 하루 총 7시간 상한 수식]</strong>
+      <div style="margin-top:4px; opacity:0.85; font-size:11px; padding-left:5px; border-left:2px solid #E0C090;">
+        • 🌅 <b>오전:</b> 고인지 2시간 + 중인지 1시간<br>
+        • 🥗 <b>점심 식후:</b> 저인지 1시간 (산책 및 정돈)<br>
+        • 🌃 <b>오후/저녁:</b> 고인지 2시간 + 중인지 1시간
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 시간 및 인지부하 검증 블록 -->
+  <div class="sec">Cognitive Load Check</div>
+  <div class="blk" style="border-color:var(--blue)">
+    <div class="blk-hdr" style="background:rgba(42,110,160,0.08); border-bottom-color:rgba(42,110,160,0.15)">
+      <div class="dot" style="background:var(--blue)"></div>
+      <span class="bcat" style="background:rgba(42,110,160,0.15); color:var(--blue)">정량 정산</span>
+      <span class="btitle">공부 시간 및 인지부하 팩트 검증</span>
+    </div>
+    <div class="blk-body">
+      <label class="irow" htmlFor="chk-01">
+        <input type="checkbox" id="chk-01">
+        <span class="itxt" id="tx-chk-01">순공 시간을 정산할 때, 뽀모도로 휴식을 철저히 제외한 순수 공부 시간(25분 한 덩어리)만 엄격히 계산했는가?</span>
+      </label>
+      <label class="irow" htmlFor="chk-02">
+        <input type="checkbox" id="chk-02">
+        <span class="itxt" id="tx-chk-02">하루 중 고인지 과업 시간의 총합이 <strong>4시간 한계치</strong> 이하인가?</span>
+      </label>
+      <label class="irow" htmlFor="chk-03">
+        <input type="checkbox" id="chk-03">
+        <span class="itxt" id="tx-chk-03">만약 오늘 고인지 시간 4시간을 가득 채웠다면, <strong>고인지 취미 활동(전략 게임 등)을 오늘 하루 금지</strong>하였는가? </span>
+      </label>
+      <label class="irow" htmlFor="chk-04">
+        <input type="checkbox" id="chk-04">
+        <span class="itxt" id="tx-chk-04">중인지 과업이 8시간(파워냅 수행 시 최대 9~10시간) 한계선을 정확히 준수했는가?</span>
+      </label>
+      <label class="irow" htmlFor="chk-05">
+        <input type="checkbox" id="chk-05">
+        <span class="itxt" id="tx-chk-05">저인지 과업 수행 중 파워냅 유무와 무관하게 안구 건조, 엉덩이 통증, 근골격 피로도가 감지되었을 때 즉시 멈추었는가?</span>
+      </label>
+      <label class="irow" htmlFor="chk-06">
+        <input type="checkbox" id="chk-06">
+        <span class="itxt" id="tx-chk-06">강도별 혼합 과업을 수행할 때, 뇌가 완전히 무력화되지 않도록 혼합 한계 수식(예: 고4+중2+저1=총 7시간)을 무리 없이 적용했는가?</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 2. 휴식 및 도파민 통제 블록 -->
+  <div class="sec">Rest & Recovery Check</div>
+  <div class="blk" style="border-color:var(--green)">
+    <div class="blk-hdr" style="background:rgba(58,96,48,0.08); border-bottom-color:rgba(58,96,48,0.15)">
+      <div class="dot" style="background:var(--green)"></div>
+      <span class="bcat" style="background:rgba(58,96,48,0.15); color:var(--green)">정신 건강</span>
+      <span class="btitle">휴식의 질적 통제 및 마인드셋 방어</span>
+    </div>
+    <div class="blk-body">
+      <label class="irow" htmlFor="chk-07">
+        <input type="checkbox" id="chk-07">
+        <span class="itxt" id="tx-chk-07">과업 중간중간 쉬는 시간에 전자기기(스마트폰 쇼츠, 웹툰, SNS) 소비를 완전히 멈추고 <b>이완 행동(명상, 비수면 깊은 휴식/NSDR, 전신 스트레칭, 산책, 먼 풍경 응시, 두피 마사지 등)</b>만 철저히 지켰는가?</span>
+      </label>
+      <label class="irow" htmlFor="chk-08">
+        <input type="checkbox" id="chk-08">
+        <span class="itxt" id="tx-chk-08">합법적 보상 구역이나 자유 시간이라도, 오늘의 모든 필수 공부 및 과업이 물리적으로 <strong>완전 종료된 이후</strong>에만 인지 활동 소모 취미를 시작했는가?</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="footer">
+    <div>나의 가치는 컨디션이 좋은 날이 아니라, 몸이 무너져내리는 날 지켜낸 루틴에서 증명된다.</div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'penguin_readme_chk';
+let chkState = {};
+
+// 요소 수집
+const checkBoxes = document.querySelectorAll('input[type="checkbox"]');
+const statsEl = document.getElementById('stats');
+const btnReset = document.getElementById('btnResetAll');
+
+// 상태 저장
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(chkState));
+  updateUI();
+}
+
+// 상태 불러오기
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      chkState = JSON.parse(saved);
+    } else {
+      chkState = {};
+    }
+  } catch (e) {
+    chkState = {};
+  }
+  
+  checkBoxes.forEach(cb => {
+    const id = cb.id;
+    cb.checked = !!chkState[id];
+    const txt = document.getElementById('tx-' + id);
+    if (txt) {
+      txt.classList.toggle('done', cb.checked);
+    }
+  });
+  updateUI();
+}
+
+// UI 현황판 업데이트
+function updateUI() {
+  const total = checkBoxes.length;
+  let done = 0;
+  checkBoxes.forEach(cb => {
+    if (cb.checked) done++;
+  });
+  
+  statsEl.textContent = `검증 완료: ${Math.round((done / total) * 100)}% (${done}/${total})`;
+}
+
+// 체크박스 클릭 핸들러
+checkBoxes.forEach(cb => {
+  cb.addEventListener('change', (e) => {
+    const id = e.target.id;
+    chkState[id] = e.target.checked;
+    
+    const txt = document.getElementById('tx-' + id);
+    if (txt) {
+      txt.classList.toggle('done', e.target.checked);
+    }
+    saveState();
+  });
+});
+
+// ⚠️ 대형 리셋 버튼 이벤트 (실수 방지 안전 모달 팝업 장착)
+btnReset.addEventListener('click', () => {
+  const confirmResult = confirm("⚠️ 원칙 검증 데이터 전체 초기화 경고!\n\n오늘 완료한 정산 내역 및 원칙 점검 수치를 리셋하시겠습니까?\n이 동작은 되돌릴 수 없으며, 다음 날 공부를 준비할 때만 사용하는 것을 권장합니다.");
+  if (confirmResult) {
+    chkState = {};
+    checkBoxes.forEach(cb => {
+      cb.checked = false;
+      const txt = document.getElementById('tx-' + cb.id);
+      if (txt) txt.classList.remove('done');
+    });
+    saveState();
+  }
+});
+
+// 앱 실행
+loadState();
+</script>
+</body>
+</html>
