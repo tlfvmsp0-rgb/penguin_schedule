@@ -565,7 +565,7 @@ function render(){
 
     const body = document.createElement('div'); body.className = 'blk-body';
     b.items.forEach((item, i) => {
-      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【팩트\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
+      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【사실\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
       const row = document.createElement(nc ? 'div' : 'label'); row.className = 'irow' + (nc ? ' nc' : ''); if (!nc) row.htmlFor = iid;
       if (nc){ row.innerHTML = `<span class="ibullet" style="color:${cs.dot}">•</span>`; }
       else {

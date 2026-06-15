@@ -231,7 +231,7 @@ const S = [
    ]},
 
   {id:'walkAm', time:'08:15', dur:'15분', cat:'health',
-   title:'🚶 식후 가짜 출근 산책',
+   title:'🚶 식후 산책',
    items:[
      '【팩트】 재택 학습 시 신체 활력을 부여하는 필수 물리적 스위치',
      '동네 한 바퀴 걷기 (아침 햇빛 샤워 포함)',
@@ -325,7 +325,7 @@ const S = [
    ]},
 
   {id:'walkLunch', time:'13:35', dur:'15분', cat:'health',
-   title:'🚶 점심 식후 가짜 출근 산책',
+   title:'🚶 점심 식후 산책',
    items:[
      '【팩트】 식곤증이 몰려오는 시점에 물리적 걷기로 혈당 스파이크 차단',
      '집 밖으로 나가 가볍게 걸으며 소화시키기',
@@ -417,7 +417,7 @@ const S = [
    ]},
 
   {id:'walkPm', time:'19:10', dur:'15분', cat:'health',
-   title:'🚶 저녁 식후 가짜 출근 산책',
+   title:'🚶 저녁 식후 산책',
    items:[
      '【팩트】 구강 루틴 후 눕고 싶은 마찰력을 물리적으로 부수기 위한 산책',
      '집 밖으로 나가 가볍게 걸으며 저녁의 뇌 리셋',
@@ -893,7 +893,7 @@ function render(){
 
     const body = document.createElement('div'); body.className = 'blk-body';
     b.items.forEach((item, i) => {
-      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【팩트\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
+      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【사실\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
       const row = document.createElement(nc ? 'div' : 'label'); row.className = 'irow' + (nc ? ' nc' : ''); if (!nc) row.htmlFor = iid;
       if (nc){ row.innerHTML = `<span class="ibullet" style="color:${cs.dot}">•</span>`; }
       else {
