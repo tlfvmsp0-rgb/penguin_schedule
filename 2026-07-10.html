@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>펭귄 일정표 📋</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* ── [엔진 1] 디자인(CSS) 영역 ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EDEAE3;--card:#FAFAF7;--night:#17233A;--dawn:#2C3F6A;
+  --green:#3A6030;--orange:#C96A20;--blue:#2A6EA0;--red:#B03040;
+  --purple:#8040A0;--teal:#2A8070;--gray:#888;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:#1A1A1A}
+
+#hdr{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#1A3A1A 0%,#243A28 100%);
+  color:#fff;padding:13px 15px 10px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.hdr-l .date-lbl{font-size:9px;letter-spacing:3px;opacity:.5;margin-bottom:2px}
+.hdr-l .title{font-family:'DM Serif Display',serif;font-size:18px;line-height:1.2}
+.badge-row{margin-top:5px; margin-bottom:5px;}
+.badge{display:inline-block;background:#2A8040;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
+.badge2{display:inline-block;background:#A03030;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:5px;letter-spacing:.5px}
+
+.data-btns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.btn-data{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.5px}
+.btn-data:hover{background:rgba(255,255,255,0.3)}
+
+.hdr-r{text-align:right;flex-shrink:0;position:relative;}
+.pct-big{font-size:30px;font-weight:700;color:#7EC8A0;line-height:1;transition:all 0.3s ease;}
+.pct-sub{font-size:10px;opacity:.55;margin-top:2px}
+.pbar-wrap{height:5px;background:rgba(255,255,255,.12);border-radius:3px;margin-bottom:8px;overflow:hidden;}
+.pbar-fill{height:100%;background:#7EC8A0;border-radius:3px;transition:width .3s ease}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.1);padding:2px 9px;border-radius:20px;font-size:10px}
+.chip b{color:#7EC8A0}
+
+/* ── 동기화 상태 칩 ── */
+#sync-status{transition:color 0.5s ease; font-size:10px;}
+
+#content{max-width:660px;margin:0 auto;padding:12px 10px 60px}
+
+/* ──[엔진 1-2] 도장 시스템 CSS ── */
+.stamp-wrap { background:#FFF8EC; border:2px solid #E0B080; border-radius:11px; padding:12px; margin-bottom:12px; }
+.stamp-ttl { font-size:12px; font-weight:700; color:#A04020; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.stamp-controls { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; }
+.btn-stamp { background:#E06040; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.btn-stamp:active { transform:scale(0.95); }
+.btn-stamp.use { background:#4080A0; }
+.btn-stamp.undo { background:#A0A0A0; }
+.stamp-guide { font-size:10.5px; background:rgba(255,255,255,0.7); padding:8px; border-radius:6px; margin-bottom:10px; border:1px dashed #D0B090; color:#555; line-height:1.5; }
+.stamp-display { display:flex; flex-wrap:wrap; gap:5px; min-height:45px; align-items:center; background:rgba(255,255,255,0.6); padding:10px; border-radius:8px; border:1px dashed #D0A080; }
+.stamp-icon { font-size:26px; user-select:none; }
+.stamp-prev { filter: hue-rotate(200deg) opacity(0.65); } 
+.stamp-today { color: #E03030; animation: stamp-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; } 
+.stamp-fraction { font-size:12px; font-weight:700; color:#E06040; margin-left:5px; background:rgba(224,96,64,0.1); padding:3px 7px; border-radius:12px; }
+@keyframes stamp-pop { 0% { transform: scale(2.5) rotate(-20deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+/* 메모장 CSS */
+.memo-wrap{background:#FBF6EB;border:2px solid #D0CCC4;border-radius:11px;padding:12px;margin-bottom:12px;}
+.memo-ttl{font-size:10px;font-weight:700;color:#887030;margin-bottom:6px;letter-spacing:1px;}
+#memo-input{width:100%;min-height:80px;background:transparent;border:none;outline:none;font-size:13px;line-height:1.6;color:#2A2010;resize:vertical;font-family:inherit;}
+.pomo-memo { width: 100%; border: none; border-top: 1px dashed rgba(0,0,0,0.15); background: transparent; padding: 7px 0 0 0; margin-top: 7px; font-size: 12px; color: #2A2010; outline: none; font-family: inherit; }
+.pomo-memo::placeholder { color: #A09888; font-style: italic; }
+
+.alert{background:#FFF3E0;border:2px solid #E08020;border-radius:11px;padding:11px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
+.alert strong{color:#C05010}
+.alert-menses{background:#FEF0F5;border:2px solid #D06080;border-radius:11px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65}
+.alert-menses strong{color:#B03060}
+
+.sec{font-size:9px;font-weight:700;letter-spacing:2.5px;color:#999;padding:14px 4px 5px;text-transform:uppercase}
+
+.blk{border-radius:11px;margin-bottom:7px;overflow:hidden;border:1.5px solid;transition:opacity .25s}
+.blk.all-done{opacity:.5}
+.blk-hdr{display:flex;align-items:center;gap:7px;padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.05)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.btime{font-family:monospace;font-weight:700;font-size:11.5px;min-width:36px;flex-shrink:0}
+.bcat{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;flex-shrink:0}
+.btitle{font-size:13px;font-weight:600;flex:1;line-height:1.35}
+.bdur{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.btn-check-all{font-size:9px; font-weight:700; color:inherit; opacity:0.5; border:1px solid currentColor; padding:1px 5px; border-radius:4px; cursor:pointer; transition:0.2s;}
+.btn-check-all:hover{opacity:1; background:rgba(0,0,0,0.05);}
+.done-mark{flex-shrink:0;font-size:13px;display:none}
+.blk-body{padding:7px 12px 10px}
+.irow{display:flex;align-items:flex-start;gap:8px;padding:2.5px 0;cursor:pointer}
+.irow.nc{cursor:default}
+input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:pointer}
+.ibullet{margin-top:2px;flex-shrink:0;font-size:11px}
+.itxt{font-size:12.5px;line-height:1.55;transition:all .2s}
+.itxt.done{text-decoration:line-through;color:#BBBBBB}
+.itxt.warn{font-weight:500}
+
+.week-box{background:var(--card);border-radius:11px;padding:14px;margin-top:6px;border:1.5px solid #D0CCC4}
+.week-ttl{font-family:'DM Serif Display',serif;font-size:14px;margin-bottom:10px;color:var(--night)}
+.wrow{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #EDEDE8;font-size:12px;line-height:1.45}
+.wrow:last-child{border-bottom:none}
+.wdate{font-weight:700;min-width:62px;color:var(--dawn);flex-shrink:0}
+.wdate.today{color:#2A8040}
+.wdesc{color:#444}
+.footer{text-align:center;margin-top:20px;padding:16px;background:#1A3A1A;border-radius:11px;color:#7EC8A0}
+
+/* 🌟 초과달성 뱃지 애니메이션 */
+@keyframes overachieve {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+}
+.over-badge {
+  display:inline-block; font-size:12px; color:#FFD700; margin-left:5px;
+  animation: overachieve 0.5s ease-out forwards; vertical-align: middle;
+}
+</style>
+</head>
+<body>
+
+<!-- ── [엔진 2] HTML 뼈대 ── -->
+<div id="hdr">
+  <div class="hdr-row">
+    <div class="hdr-l">
+      <div class="date-lbl" id="el-date">날짜 로딩중...</div>
+      <div class="title" id="el-title">펭귄 일정표 📋</div>
+      <div class="badge-row">
+        <span class="badge" id="el-badge1">로딩중</span>
+        <span class="badge2" id="el-badge2" style="display:none;"></span>
+      </div>
+      <div class="data-btns">
+        <button id="btnExport" class="btn-data">💾 임시 복사</button>
+        <button id="btnImport" class="btn-data">📂 불러오기</button>
+        <button id="btnGithubExport" class="btn-data" style="background:rgba(255,100,100,0.2);border-color:rgba(255,100,100,0.5);">💾 깃허브 제출용 다운로드</button>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div class="pct-big" id="pPct">0%</div>
+      <div class="pct-sub" id="pSub">0 / 0</div>
+    </div>
+  </div>
+  <div class="pbar-wrap"><div class="pbar-fill" id="pFill" style="width:0%"></div></div>
+  <div class="chips">
+    <div class="chip">🍅 완료: <b id="cPomo">0/0</b></div>
+    <div class="chip">⏱️ 순공: <b id="cStudy">0h 0m</b></div>
+    <div class="chip">✅ 전체: <b id="cAll">0/0</b></div>
+    <!-- ★ [Firebase 추가] 동기화 상태 표시 -->
+    <div class="chip"><b id="sync-status" style="color:#7EC8A0;">⏳ 연결 중...</b></div>
+  </div>
+</div>
+
+<div id="content"></div>
+
+<!-- ★ [Firebase 추가] Firebase SDK (엔진보다 먼저 로드) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// =========================================================================
+// ⬇️ [영역 A] 매일 갈아끼우는 데이터 영역 ⬇️
+// =========================================================================
+
+const DailyConfig = {
+  dateLabel: "2026.07.10 금요일 [⚖️ 보유: 0kcal | ⏳ 쿨타임 ~7/11 금지]",
+  badge1: "🏢 송도 실습 1일차",
+  badge2: "🚀 21뽀모 한계 돌파",
+  alert1HTML: "<strong>🏢 송도 실습 출근 개시 & 왕복 3시간의 늪 방어</strong><br>왕복 3시간의 거대한 통근 시간이 발생했습니다. 이 시간을 버리지 않고, 기사 스크래핑과 영어 듣기, 규제 가이드라인 독해로 총 4뽀모를 흡수하여 루틴을 사수합니다.",
+  alert2HTML: "<strong>🚀 이론상 하루 최대 한계치 21뽀모 타격</strong><br>실습 16뽀모와 1일 1지원 루틴을 병합하여 하루 최대 한계치인 21뽀모를 설계했습니다. 체력 소모가 극심하므로 쉬는 시간에 스마트폰을 보지 말고 무조건 눈을 감고 뇌를 쉬게 하세요.",
+  footerQuote: "나의 의지가 닿지 않는 곳은 없다. 통근 버스 안조차 나의 작업실이다.</div><div style=\"font-size:11px;opacity:.65;margin-top:5px\">한계치인 21번의 타이머를 이겨낸 오늘의 당신은 누구보다 강하다.",
+  storageKey: "penguin_chk_20260710",
+  prevStampPoints: 0 // 이전까지 모은 도장 포인트 수 적기 (1도장 = 3포인트)
+};
+
+const SB =[
+  '자리에서 일어나 무조건 이동 (휴게실/복도/화장실)',
+  '가볍게 스트레칭 (목/어깨 이완)',
+  '눈을 감고 시각 자극 차단하기',
+  '【주의】 체력 방전을 막기 위해 스마트폰 절대 금지',
+];
+
+const LB =[
+  '건물 밖으로 잠시 나가 바깥바람 마시기',
+  '전신 스트레칭 (5분)',
+  '물 or 가벼운 간식 섭취',
+  '【주의】 눕지 말기 (지정된 파워냅 시간 제외)',
+];
+
+const S = [
+
+  /* ══ 기상 & 아침 워밍업 ══ */
+  {id:'wake', sec:'☀️ 기상 & 아침 훈련 (06:30~07:25)', time:'06:30', dur:'20분', cat:'morning',
+   title:'🌅 기상 및 일주기 리셋 (간접광 15분)',
+   items:[
+     '알람 끄고 바로 몸 일으키기',
+     '화장실로 직행하여 찬물로 세안하며 수면 관성 깨기',
+     '창문을 열고 15분간 간접광 노출 및 가벼운 스트레칭',
+   ]},
+
+  {id:'prepAm', time:'06:50', dur:'25분', cat:'morning',
+   title:'🍳 식사 준비 및 환복',
+   items:[
+     '전날 세팅해둔 오버나이트 오트밀로 신속하게 아침 식사',
+     '식사 완료 후 외출복으로 즉시 환복',
+   ]},
+
+  {id:'medAm', time:'07:15', dur:'5분', cat:'meds',
+   title:'💊 아침 약 복용',
+   items:[
+     '탈모 약 (스피락톤정 50mg + 현대미녹시딜정 + 마이녹실 S캡슐) 복용',
+     '물 200ml 이상으로 알약 충분히 삼키기',
+   ]},
+
+  {id:'denAm', time:'07:20', dur:'10분', cat:'dental',
+   title:'🦷 아침 양치 및 출발',
+   items:[
+     '일반 양치 (10분) — 교정장치 구석구석 닦기',
+     '어제 싸둔 송도 실습용 가방 메고 신속히 출근 출발',
+   ]},
+
+  /* ══ 송도 출근길 (모바일 압축 세션) ══ */
+  {id:'transitAm', sec:'🚶 송도 출근 및 모바일 세션 (07:30~09:00)', time:'07:30', dur:'90분', cat:'transit',
+   title:'🚶 1시간 30분의 송도 출근길',
+   items:[
+     '【팩트】 이 기나긴 통근 시간을 통제해야 오늘 1일 1지원이 가능하다.',
+     '지하철/버스 탑승 후 즉시 타이머 세팅',
+   ]},
+
+  {id:'p1', time:'07:30', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 01 — 📰 제약 기사 정독 1',
+   items:[
+     '바이브 코딩 프로그램이 수집한 업계 동향 기사 모바일로 읽기',
+   ]},
+
+  {id:'p2', time:'08:00', dur:'25분', cat:'study', pomo:2,
+   title:'뽀모도로 02 — 📰 제약 기사 정독 2',
+   items:[
+     '남은 기사 마저 읽고 자소서에 써먹을 만한 키워드 메모장에 발췌',
+   ]},
+
+  {id:'p3', time:'08:30', dur:'25분', cat:'study', pomo:3,
+   title:'뽀모도로 03 — 🎧 제약바이오 업계 영어',
+   items:[
+     '기사 정독으로 지친 눈을 감고, 영문 팟캐스트나 강의 리스닝에 몰입',
+     '08:55 도착 후 실습실 지정 좌석에 착석 및 노트북 세팅',
+   ]},
+
+  /* ══ 송도 실습 오전 세션 (철저한 25분 분할) ══ */
+  {id:'p4', sec:'💻 송도 실습 오전 세션 (09:00~12:00)', time:'09:00', dur:'25분', cat:'study', pomo:4, title:'뽀모도로 04 — 💻 실습 몰입', items:['송도 실습 1일차 오리엔테이션 및 오전 교육 집중']},
+  {id:'b4', time:'09:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ①', items:SB},
+
+  {id:'p5', time:'09:30', dur:'25분', cat:'study', pomo:5, title:'뽀모도로 05 — 💻 실습 몰입', items:['교육 내용 필기 및 흐름 파악']},
+  {id:'b5', time:'09:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ②', items:SB},
+
+  {id:'p6', time:'10:00', dur:'25분', cat:'study', pomo:6, title:'뽀모도로 06 — 💻 실습 몰입', items:['집중 유지']},
+  {id:'b6', time:'10:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ③', items:SB},
+
+  {id:'p7', time:'10:30', dur:'25분', cat:'study', pomo:7, title:'뽀모도로 07 — 💻 실습 몰입', items:['새로운 실습 장비나 환경에 대한 노트 정리']},
+  {id:'b7', time:'10:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ④', items:SB},
+
+  {id:'p8', time:'11:00', dur:'25분', cat:'study', pomo:8, title:'뽀모도로 08 — 💻 실습 몰입', items:['집중 유지']},
+  {id:'b8', time:'11:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑤', items:SB},
+
+  {id:'p9', time:'11:30', dur:'25분', cat:'study', pomo:9, title:'뽀모도로 09 — 💻 실습 몰입', items:['오전 실습 내용 최종 요약 및 갈무리']},
+  {id:'b9', time:'11:55', dur:'5분', cat:'sbreak', title:'휴식 ⑥ — 식당 이동', items:['오전 세션 종료. 동기들과 식당으로 이동']},
+
+  /* ══ 점심 식사 및 파워냅 ══ */
+  {id:'lunch', sec:'🍽️ 점심 식사 및 파워냅 (12:00~13:00)', time:'12:00', dur:'30분', cat:'meal',
+   title:'🥗 점심 식사',
+   items:[
+     '【팩트】 체력 소모가 심한 날이므로 든든하게 식사 챙기기',
+     '【주의】 센트룸 복용 예정이므로 우유/치즈 등 칼슘 섭취 피하기',
+   ]},
+
+  {id:'medLunch', time:'12:30', dur:'5분', cat:'meds',
+   title:'💊 점심 영양제 복용 (금요일 룰)',
+   items:[
+     '센트룸 우먼 (1정) + 오메가 3 (1캡슐) 복용 (비타민D 제외)',
+     '【주의】 약 복용 후 2시간(14:30까지) 우유 및 유제품 절대 섭취 금지',
+   ]},
+
+  {id:'denLunch', time:'12:35', dur:'5분', cat:'dental',
+   title:'🦷 식후 양치',
+   items:[
+     '실습장 화장실에서 식후 양치 신속히 진행',
+   ]},
+
+  {id:'nap', time:'12:40', dur:'20분', cat:'special',
+   title:'🧠 NASA 파워냅 (오후 방어전)',
+   items:[
+     '【핵심】 오후 5시간 실습을 버티기 위해 책상에 엎드려 15~20분간 눈 붙이기',
+     '알람이 울리면 즉시 일어나 찬물 마시고 스트레칭',
+   ]},
+
+  /* ══ 송도 실습 오후 세션 ══ */
+  {id:'p10', sec:'💻 송도 실습 오후 세션 (13:00~18:00)', time:'13:00', dur:'25분', cat:'study', pomo:10, title:'뽀모도로 10 (보너스!)', items:['【팩트】 오늘 목표 10뽀모 조기 달성! 보너스 도장 +1 획득. 오후 실습 몰입']},
+  {id:'b10', time:'13:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑦', items:SB},
+
+  {id:'p11', time:'13:30', dur:'25분', cat:'study', pomo:11, title:'뽀모도로 11 — 💻 실습 몰입', items:['실무 과제 및 예시 파악']},
+  {id:'b11', time:'13:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑧', items:SB},
+
+  {id:'p12', time:'14:00', dur:'25분', cat:'study', pomo:12, title:'뽀모도로 12 — 💻 실습 몰입', items:['집중 유지']},
+  {id:'b12', time:'14:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑨', items:['【주의 해제】 14:30 이후 칼슘 제한 해제']},
+
+  {id:'p13', time:'14:30', dur:'25분', cat:'study', pomo:13, title:'뽀모도로 13 — 💻 실습 몰입', items:['질의응답 및 중요 포인트 메모']},
+  {id:'b13', time:'14:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑩', items:SB},
+
+  {id:'p14', time:'15:00', dur:'25분', cat:'study', pomo:14, title:'뽀모도로 14 — 💻 실습 몰입', items:['오후의 피로도를 이겨내는 집중 마의 구간']},
+  {id:'b14', time:'15:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑪', items:SB},
+
+  {id:'p15', time:'15:30', dur:'25분', cat:'study', pomo:15, title:'뽀모도로 15 — 💻 실습 몰입', items:['집중 유지']},
+  {id:'b15', time:'15:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑫', items:SB},
+
+  {id:'p16', time:'16:00', dur:'25분', cat:'study', pomo:16, title:'뽀모도로 16 — 💻 실습 몰입', items:['실무 데이터 분석 및 조별 활동(있을 시) 집중']},
+  {id:'b16', time:'16:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑬', items:SB},
+
+  {id:'p17', time:'16:30', dur:'25분', cat:'study', pomo:17, title:'뽀모도로 17 — 💻 실습 몰입', items:['집중 유지']},
+  {id:'b17', time:'16:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑭', items:SB},
+
+  {id:'p18', time:'17:00', dur:'25분', cat:'study', pomo:18, title:'뽀모도로 18 — 💻 실습 몰입', items:['오늘 실습의 최종 요약 단계']},
+  {id:'b18', time:'17:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑮', items:SB},
+
+  {id:'p19', time:'17:30', dur:'25분', cat:'study', pomo:19, title:'뽀모도로 19 — 💻 실습 갈무리', items:['1일차 실습 최종 마감 및 현장 정리. 압도적인 19뽀모 달성!']},
+  {id:'b19', time:'17:55', dur:'5분', cat:'sbreak', title:'휴식 ⑯ — 퇴근 준비', items:['18:00 실습 종료 즉시 가방 챙겨서 퇴근 준비']},
+
+  /* ══ 송도 퇴근길 (모바일 압축 세션) ══ */
+  {id:'transitPm', sec:'🚶 퇴근 및 모바일 세션 (18:00~19:30)', time:'18:00', dur:'90분', cat:'transit',
+   title:'🚶 자택으로 1시간 30분 퇴근',
+   items:[
+     '지하철/버스 탑승 후 자리 잡기',
+   ]},
+
+  {id:'p20', time:'18:10', dur:'25분', cat:'study', pomo:20,
+   title:'뽀모도로 20 — 📖 제약 규제 가이드라인 리딩',
+   items:[
+     '【마지막 모바일 타격】 이동 중 식약처, FDA 등 규제 문서 가볍게 독해',
+     '이후 남은 통근 시간은 눈을 감고 휴식 및 숙면',
+   ]},
+
+  /* ══ 저녁 루틴 및 1일 1지원 마감 ══ */
+  {id:'oatmeal', sec:'🍽️ 저녁 루틴 및 최종 마감 (19:30~22:30)', time:'19:30', dur:'5분', cat:'special',
+   title:'🥣 내일 아침용 오버나이트 오트밀 제조 (퇴근 직후 룰)',
+   items:[
+     '【핵심】 극도의 피로 속에서도 옷도 갈아입기 전에 즉시 제조',
+     '오트밀 30g + 우유 100ml + 꿀 7g + 시나몬 1g 섞고 냉장고 직행',
+   ]},
+
+  {id:'dinner', time:'19:35', dur:'35분', cat:'meal',
+   title:'🍚 저녁 식사 및 약 복용',
+   items:[
+     '오트밀 세팅 직후 바로 저녁 식사 (수고한 나를 위한 보상 메뉴 추천)',
+     '식후 탈모 약 (마이녹실 S캡슐) 복용',
+   ]},
+
+  {id:'denPmHeavy', time:'20:10', dur:'30분', cat:'dental',
+   title:'🦷 구강 관리 풀루틴 (식후 즉시)',
+   items:[
+     '워터픽 (5분) — 교정장치 찌꺼기 꼼꼼하게 제거',
+     '치실 (8분) — 이물질 정밀 제거',
+     '일반 양치 (12분) — 가장 정성껏 구석구석 양치 진행',
+     '치간칫솔 (5분) — 마무리 체크',
+   ]},
+
+  {id:'walkPm', time:'20:40', dur:'15분', cat:'health',
+   title:'🚶 저녁 식후 짧은 산책',
+   items:[
+     '구강 루틴 후 눕고 싶은 마찰력을 물리적으로 부수기 위한 15분 환기',
+   ]},
+
+  {id:'p21', time:'20:55', dur:'25분', cat:'study', pomo:21,
+   title:'뽀모도로 21 — 💼 자소서 1개 마감 (이론상 최대치 도달!)',
+   items:[
+     '【마인드셋】 오늘 하루 21뽀모라는 이론상 최대 한계치에 도달하는 마지막 타이머입니다.',
+     '지원할 이력서 폼 채우기 및 자소서 스케치 빠르게 마무리하여 1일 1지원 방어',
+   ]},
+
+  /* ══ 통제 구역 (자유 및 취침) ══ */
+  {id:'rsv', time:'21:20', dur:'40분', cat:'reserve',
+   title:'⚖️ 확실한 보상과 자유 시간',
+   items:[
+     '【팩트】 송도 왕복과 21뽀모라는 한계치를 박살 낸 나에게 주어지는 자유',
+     '시간이 압축된 만큼 밀도 있게 휴식하고 뇌를 비워내기',
+   ]},
+
+  {id:'wash', time:'22:00', dur:'15분', cat:'night',
+   title:'🚿 샤워 및 머리 감기',
+   items:[
+     '보상 시간 종료 후 1초도 고민하지 말고 화장실로 직행',
+     '따뜻한 물로 샤워하여 교감신경을 Sleep 모드로 전환',
+   ]},
+
+  {id:'journal', time:'22:15', dur:'15분', cat:'night',
+   title:'📔 내일(토요일 회피 퀘스트) 세팅 및 릴랙스',
+   items:[
+     '【중요】 내일은 <b>상견례 회피 종일 도서관 출근</b>입니다. 내일 가방을 미리 세팅하세요.',
+     '목과 허리 이완 스트레칭 및 4-7-8 복식호흡으로 뇌 안정화',
+   ]},
+
+  {id:'sleep', time:'22:30', dur:'25분', cat:'night',
+   title:'😴 취침 준비 (환경 완벽 통제)',
+   items:[
+     '내일 기상 알람 (06:30) 설정 확인',
+     '새벽 햇빛으로 인한 조기 기상을 막기 위해 커튼 완벽히 치기',
+     '【팩트】 한계치인 21뽀모를 완벽하게 정복했음을 뇌에 각인하며 22:30 취침',
+   ]},
+
+  /* ══ 예비 & 유의사항 ══ */
+  {id:'rsv_pomo', sec:'🆘 초과달성 예비 뽀모도로 구역 (대폭 확장)', time:'', dur:'', cat:'reserve', pomo:'bonus',
+   title:'🆘 예비 뽀모도로 (한계 돌파용 자투리 수집)',
+   items:[
+     '🎮 게임 대신 뽀모 1 (도장 1개 획득 할증 이벤트!)',
+     '🎮 게임 대신 뽀모 2 (도장 1개 획득 할증 이벤트!)',
+     '⏱️ 일찍 끝난 자투리 뽀모 1 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 2 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 3 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 4 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 5 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 6 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 7 (도장 1/3개 획득)',
+     '⏱️ 일찍 끝난 자투리 뽀모 8 (도장 1/3개 획득)',
+   ]},
+
+  {id:'nt', sec:'', time:'', dur:'', cat:'notes',
+   title:'📌 유연한 일정을 위한 원칙',
+   items:[
+     '【치팅밀 룰】 ⏳ 쿨타임 ~7/11 금지 (7/12(일)부터 사용 가능).',
+     '【생산적 딴짓 금지】 정보 검색, 앱 찾기 등 당장 안 해도 되는 일은 뽀모도로 중 절대 금지. 즉시 메모장에 적을 것.',
+     '【뇌 과학】 공부 모드 선택 가이드:',
+     ' 1) 기존 뽀모: 지루하고 하기 싫은 작업용 (25분 집중 / 5분 휴식)',
+     ' 2) 플로우-포모도로: 중/고인지 작업용 (타이머 작동 후 집중 종료 시까지 수행 → 휴식은 수행 시간의 평균 20% [15%~30% 한계])',
+     ' 3) 울트라디안 리듬: 초고인지 몰입 작업용 (90분 집중 / 20분 휴식)',
+     '【뇌 과학】 뽀모도로 개수 체크는 실제 초과 집중한 시간만큼 비례해서 체크. 휴식 중 인지 자원 소모 절대 금지!',
+   ]},
+];
+
+const W =[
+  {d:'7/11 (토)', t:'🚫 상견례 회피 퀘스트: 종일 도서관 출근 (집 체류 절대 금지)'},
+  {d:'7/12 (일)', t:'⚖️ 치팅밀 쿨타임 해제 (사용 가능)'},
+  {d:'7/17 (금)', t:'🗣️ CBT 정기 상담 (12:00) & 🎲 다인 TRPG 세션 (14:00) *송도 실습 충돌 확인 대기'},
+  {d:'7/25 (토)', t:'🏥 교정치과 진료 예약 (10:00)'},
+  {d:'7/27 (월)', t:'💻 새일센터 이론 교육 재개 (7/29까지)'},
+  {d:'8월 중', t:'🎲 CoC 은닉 다인 시나리오 세션 (미정)'},
+];
+
+// =========================================================================
+// ⬆️ [영역 A] 끝 ⬆️
+// =========================================================================
+
+
+// =========================================================================
+// ★ [Firebase 추가] 설정 영역 ★
+// Firebase 콘솔(https://console.firebase.google.com)에서 복사한 값으로 교체하세요.
+// =========================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDWboFWcolJUbnuq0Vl-piK14_ebWpFXVU",
+  authDomain: "penguin-schedule.firebaseapp.com",
+  databaseURL: "https://penguin-schedule-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "penguin-schedule",
+  storageBucket: "penguin-schedule.firebasestorage.app",
+  messagingSenderId: "68169760536",
+  appId: "1:68169760536:web:d76711360a22d2f8ffe86d"
+};
+// =========================================================================
+// ★ [Firebase 추가] 설정 영역 끝 ★
+// =========================================================================
+
+
+// ── [엔진 3] 카테고리 색상표 및 핵심 로직 ──
+const C = {
+  special:{ bg:'#FFF4EC', bd:'#D06020', dot:'#C05010', lbl:'⚠️ 특별',       tc:'#C05010' },
+  morning:{ bg:'#FEF8EE', bd:'#D89050', dot:'#C07030', lbl:'🌅 기상 루틴',   tc:'#C07030' },
+  meds:   { bg:'#FBF0FA', bd:'#B060A8', dot:'#9040A0', lbl:'💊 약 복용',     tc:'#9040A0' },
+  meal:   { bg:'#FEF5ED', bd:'#C88040', dot:'#A86030', lbl:'🍽️ 식사',        tc:'#A86030' },
+  dental: { bg:'#EBF5FC', bd:'#4A9EC8', dot:'#2A80B0', lbl:'🦷 구강 관리',   tc:'#2A80B0' },
+  health: { bg:'#FEF0F2', bd:'#C84050', dot:'#A02838', lbl:'🏃 운동·건강',   tc:'#A02838' },
+  study:  { bg:'#EDF4EC', bd:'#4A7040', dot:'#385830', lbl:'🍅 뽀모도로',    tc:'#385830' },
+  transit:{ bg:'#F3F4F8', bd:'#7A84A8', dot:'#5A6488', lbl:'🚌 자투리',      tc:'#5A6488' },
+  sbreak: { bg:'#F4F8F4', bd:'#80B880', dot:'#60A060', lbl:'짧은 휴식',      tc:'#60A060' },
+  lbreak: { bg:'#EEF5EE', bd:'#60A060', dot:'#408048', lbl:'긴 휴식',        tc:'#408048' },
+  night:  { bg:'#EEF1F8', bd:'#3A4878', dot:'#283568', lbl:'🌙 취침 루틴',   tc:'#283568' },
+  reserve:{ bg:'#FFF8EC', bd:'#C89040', dot:'#A07020', lbl:'🆘 초과/보너스',  tc:'#A07020' },
+  notes:  { bg:'#FBF6EB', bd:'#A88040', dot:'#887030', lbl:'📌 유의사항',    tc:'#887030' },
+};
+
+// =========================================================================
+// ★ [Firebase 추가] 데이터 동기화 로직 ★
+// 기존 localStorage 코드를 대체합니다.
+// =========================================================================
+
+let chk = {};              // 체크 상태 (Firebase에서 로드)
+let _dbRef = null;         // Firebase DB 참조
+let _isSaving = false;     // 저장 에코 방지 플래그
+
+// 동기화 상태 표시
+function updateSyncStatus(status) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = {
+    connecting: { text: '⏳ 연결 중...', color: '#C8B87E' },
+    online:     { text: '☁️ 동기화 연결됨', color: '#7EC8A0' },
+    saved:      { text: '💾 저장됨', color: '#7EC8A0' },
+    synced:     { text: '🔄 다른 기기 반영됨', color: '#60C8E0' },
+    offline:    { text: '📴 오프라인 (로컬 저장)', color: '#E8A860' },
+  };
+  const s = map[status] || map.online;
+  el.textContent = s.text;
+  el.style.color = s.color;
+}
+
+// 저장: Firebase + localStorage(오프라인 백업) 동시 저장
+function saveState() {
+  // localStorage 백업 (오프라인에서도 데이터 유지)
+  try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
+
+  // Firebase 저장
+  if (_dbRef) {
+    _isSaving = true;
+    _dbRef.set(chk)
+      .then(() => { updateSyncStatus('saved'); })
+      .catch(() => { updateSyncStatus('offline'); })
+      .finally(() => { setTimeout(() => { _isSaving = false; }, 1200); });
+  }
+}
+
+// 다른 기기에서 변경된 데이터를 UI에 반영 (전체 재렌더 없이 업데이트)
+function syncUIFromChk() {
+  S.forEach(b => {
+    b.items.forEach((_, i) => {
+      const iid = b.id + '-' + i;
+      const cb = document.getElementById(iid);
+      const tx = document.getElementById('tx-' + iid);
+      if (cb) cb.checked = !!chk[iid];
+      if (tx) tx.classList.toggle('done', !!chk[iid]);
+    });
+    checkBlockDone(b);
+    // 뽀모 메모 동기화
+    const pmInput = document.getElementById('pmemo-input-' + b.id);
+    if (pmInput) pmInput.value = chk['pmemo-' + b.id] || '';
+  });
+  // 메모장 동기화
+  const memoEl = document.getElementById('memo-input');
+  if (memoEl) memoEl.value = chk['global_memo'] || '';
+  // 도장판 동기화
+  const iptPrev = document.getElementById('inputPrevStamps');
+  if (iptPrev) iptPrev.value = chk['prev_stamps_count'] || 0;
+  updateStampUI();
+  updateStats();
+}
+
+// 앱 초기화: Firebase 연결 → 데이터 로드 → 렌더링 → 실시간 구독
+async function initApp() {
+  updateSyncStatus('connecting');
+
+  // 1. 로컬 캐시로 즉시 렌더링 (Firebase 응답 전 빈화면 방지)
+  try {
+    const local = localStorage.getItem(DailyConfig.storageKey);
+    if (local) chk = JSON.parse(local);
+  } catch(e) {}
+  render();
+
+  // 2. Firebase 설정이 채워져 있는지 확인
+  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+    updateSyncStatus('offline');
+    console.warn('[펭귄 일정표] FIREBASE_CONFIG를 설정해주세요. 현재는 로컬 저장소만 사용합니다.');
+    // Firebase 없이도 localStorage로 동작
+    const original = saveState;
+    window.saveState = function() {
+      try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
+    };
+    return;
+  }
+
+  // 3. Firebase 초기화 (이미 초기화된 경우 기존 앱 재사용)
+  let app;
+  try {
+    app = firebase.app();
+  } catch(e) {
+    app = firebase.initializeApp(FIREBASE_CONFIG);
+  }
+  const db = firebase.database(app);
+  _dbRef = db.ref('daily/' + DailyConfig.storageKey);
+
+  // 4. Firebase에서 최신 데이터 로드 후 UI 갱신
+  try {
+    const snap = await _dbRef.get();
+    if (snap.exists()) {
+      chk = snap.val() || {};
+      try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
+      syncUIFromChk();
+    }
+    updateSyncStatus('online');
+
+    // 5. 다른 기기 변경사항 실시간 수신
+    _dbRef.on('value', (snap) => {
+      if (_isSaving) return; // 내가 방금 저장한 에코는 무시
+      const incoming = snap.val() || {};
+      // 실제로 변경된 경우만 처리
+      if (JSON.stringify(incoming) !== JSON.stringify(chk)) {
+        chk = incoming;
+        try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
+        syncUIFromChk();
+        updateSyncStatus('synced');
+        setTimeout(() => updateSyncStatus('online'), 2500);
+      }
+    });
+
+  } catch(e) {
+    console.warn('[펭귄 일정표] Firebase 연결 실패, 로컬 저장소로 작동합니다:', e);
+    updateSyncStatus('offline');
+  }
+}
+
+// =========================================================================
+// ★ [Firebase 추가] 동기화 로직 끝 ★
+// =========================================================================
+
+
+const NO_CB = new Set(['notes']);
+const RSV_IDS = new Set(['rsv_pomo', 'transit']);
+
+// ── [엔진 4] 초과 달성 연산 시스템 ──
+function updateStats(){
+  let reqTotal = 0, reqDone = 0, rsvTotal = 0, rsvDone = 0;
+  let reqPomoTotal = 0, reqPomoDone = 0, rsvPomoDone = 0;
+
+  S.forEach(b => {
+    const isRsv = RSV_IDS.has(b.id) || b.cat === 'reserve';
+    let bAll = b.items.length > 0;
+    let bonusCheckedCount = 0; 
+    
+    b.items.forEach((_, i) => {
+      const iid = b.id + '-' + i;
+      if (!NO_CB.has(b.cat)) {
+        if(isRsv) rsvTotal++; else reqTotal++;
+        if (chk[iid]) {
+          if (isRsv) rsvDone++; else reqDone++;
+          bonusCheckedCount++; 
+        } else {
+          bAll = false;
+        }
+      } else {
+        bAll = false;
+      }
+    });
+    
+    if (b.pomo !== undefined) {
+      if (b.pomo === 'bonus') {
+        rsvPomoDone += bonusCheckedCount;
+      } else {
+        reqPomoTotal++;
+        if (bAll) reqPomoDone++;
+      }
+    }
+  });
+
+  const totalItemsDone = reqDone + rsvDone;
+  const pct = reqTotal > 0 ? Math.round((totalItemsDone / reqTotal) * 100) : 0;
+  
+  const pPctEl = document.getElementById('pPct');
+  if(pct > 100) {
+     pPctEl.innerHTML = `${pct}% <span class="over-badge">🌟초과달성!</span>`;
+     pPctEl.style.color = '#FFD700'; 
+  } else {
+     pPctEl.textContent = pct + '%';
+     pPctEl.style.color = '#7EC8A0';
+  }
+  
+  document.getElementById('pSub').textContent = totalItemsDone + ' / ' + reqTotal;
+  document.getElementById('pFill').style.width = Math.min(pct, 100) + '%';
+  
+  const totalPomoDone = reqPomoDone + rsvPomoDone;
+  const m = totalPomoDone * 25;
+  document.getElementById('cPomo').textContent = totalPomoDone + '/' + reqPomoTotal;
+  document.getElementById('cStudy').textContent = Math.floor(m/60) + 'h ' + (m%60) + 'm';
+  document.getElementById('cAll').textContent = totalItemsDone + '/' + reqTotal;
+}
+
+function checkBlockDone(b){
+  if (NO_CB.has(b.cat)) return;
+  const all = b.items.every((_, i) => chk[b.id + '-' + i]);
+  const el = document.getElementById('bl-' + b.id), dm = document.getElementById('dm-' + b.id);
+  if (all){ el?.classList.add('all-done'); if(dm) dm.style.display = 'inline'; }
+  else { el?.classList.remove('all-done'); if(dm) dm.style.display = 'none'; }
+}
+
+function updateStampUI() {
+    let prevPts = (parseInt(chk['prev_stamps_count']) || 0) * 3;
+    let todayPts = chk['stamp_points_today'] || 0;
+    let totalPts = prevPts + todayPts;
+    let displayPts = totalPts < 0 ? 0 : totalPts;
+
+    let totalFull = Math.floor(displayPts / 3);
+    let prevFull = Math.floor(prevPts / 3);
+    let blueCount = Math.min(prevFull, totalFull);
+    let redCount = totalFull - blueCount;
+    let fraction = displayPts % 3;
+
+    let html = '';
+    for(let i=0; i<blueCount; i++) html += '<span class="stamp-icon stamp-prev">💮</span>';
+    for(let i=0; i<redCount; i++) html += '<span class="stamp-icon stamp-today">💮</span>';
+    if (fraction > 0) html += `<span class="stamp-fraction">+ ${fraction}/3</span>`;
+    if (displayPts === 0) html += `<span style="font-size:11px; color:#A0A0A0; padding:5px;">현재 모은 도장이 없습니다. 뽀모도로를 완료해 보세요!</span>`;
+
+    const disp = document.getElementById('stamp-display');
+    if(disp) disp.innerHTML = html;
+    const txt = document.getElementById('stamp-total-txt');
+    if(txt) txt.textContent = `(총 도장: ${totalFull}개 ${fraction>0 ? `+ ${fraction}/3` : ''})`;
+}
+
+function render(){
+  document.getElementById('el-date').textContent = DailyConfig.dateLabel;
+  document.getElementById('el-badge1').textContent = DailyConfig.badge1;
+  const b2 = document.getElementById('el-badge2');
+  if(DailyConfig.badge2){ b2.textContent = DailyConfig.badge2; b2.style.display = 'inline-block'; }
+  else{ b2.style.display = 'none'; }
+
+  const root = document.getElementById('content'); root.innerHTML = '';
+  let lastSec = '';
+
+  if(DailyConfig.alert1HTML) {
+    const al = document.createElement('div'); al.className = 'alert';
+    al.innerHTML = DailyConfig.alert1HTML; root.appendChild(al);
+  }
+  if(DailyConfig.alert2HTML) {
+    const al2 = document.createElement('div'); al2.className = 'alert-menses';
+    al2.innerHTML = DailyConfig.alert2HTML; root.appendChild(al2);
+  }
+
+  // ── 💮 도장판 UI 생성 ──
+  const stampBox = document.createElement('div');
+  stampBox.className = 'stamp-wrap';
+  stampBox.innerHTML = `
+    <div class="stamp-ttl">💮 펭귄의 칭찬 도장판 <span id="stamp-total-txt" style="color:#A0A0A0; font-weight:400;"></span></div>
+    <div class="stamp-interactive">
+      <div style="font-size:11px; margin-bottom:8px; color:#555; font-weight:700;">
+        전날까지 모은 도장: <input type="number" id="inputPrevStamps" style="width:45px; text-align:center; border:1px solid #ccc; border-radius:4px; font-weight:700; color:#2A6EA0;" min="0" value="${chk['prev_stamps_count'] || 0}"> 개
+      </div>
+      <div class="stamp-controls">
+          <button class="btn-stamp" id="btnStampPomo">+ 1/3 (1뽀모)</button>
+          <button class="btn-stamp" id="btnStampBonus">+ 1 (10뽀모 보너스)</button>
+          <button class="btn-stamp use" id="btnStampUse">- 사용 (자유 차감)</button>
+          <button class="btn-stamp undo" id="btnStampUndo">실수 취소</button>
+      </div>
+      <div class="stamp-guide">
+          <strong style="color:#A04020;">[💡 도장 교환 가이드]</strong> (도장 1개 = 3뽀모 = 1.5시간 몰입)<br>
+          ⏳ <strong>시간:</strong> 단순 오락(게임/유튜브) 1시간당 <strong>-1개</strong> / 생산적 취미(OC 로그/창작) 1시간당 <strong>-0.5개</strong><br>
+          💬 <strong>상호작용:</strong> 자투리/쉬는 시간 역극 답장은 <strong>무료</strong> (단, 쉬는 시간 엄수)<br>
+          💸 <strong>비용:</strong> 만원 이하 식사 <strong>무료</strong> / 고가 외식(만원 초과) 만원당 <strong>-1개</strong> / 취미용품 만원당 <strong>-1개</strong><br>
+          🍩 <strong>건강:</strong> 달콤한 디저트·음료(당류) <strong>-1개</strong> / 음주 <strong>-2개</strong>
+      </div>
+    </div>
+    <div class="stamp-display" id="stamp-display"></div>
+  `;
+  root.appendChild(stampBox);
+
+  const iptPrev = stampBox.querySelector('#inputPrevStamps');
+  iptPrev.addEventListener('input', (e) => {
+      chk['prev_stamps_count'] = parseInt(e.target.value) || 0;
+      saveState(); updateStampUI();
+  });
+
+  stampBox.querySelector('#btnStampPomo').addEventListener('click', () => { chk['stamp_points_today'] = (chk['stamp_points_today'] || 0) + 1; saveState(); updateStampUI(); });
+  stampBox.querySelector('#btnStampBonus').addEventListener('click', () => { chk['stamp_points_today'] = (chk['stamp_points_today'] || 0) + 3; saveState(); updateStampUI(); });
+  stampBox.querySelector('#btnStampUse').addEventListener('click', () => { 
+      let val = prompt('사용할 도장 개수를 입력하세요 (예: 2.5, 5 등)\n가이드에 따라 합리적으로 차감해보세요!', '1');
+      if(val !== null) {
+          let num = parseFloat(val);
+          if(!isNaN(num) && num > 0) {
+              chk['stamp_points_today'] = (chk['stamp_points_today'] || 0) - (num * 3);
+              saveState(); updateStampUI();
+          }
+      }
+  });
+  stampBox.querySelector('#btnStampUndo').addEventListener('click', () => { chk['stamp_points_today'] = (chk['stamp_points_today'] || 0) - 1; saveState(); updateStampUI(); });
+
+  const memoBox = document.createElement('div'); memoBox.className = 'memo-wrap';
+  memoBox.innerHTML = `<div class="memo-ttl">✍️ 나만의 비밀 메모장 (자동저장)</div>
+    <textarea id="memo-input" spellcheck="false" placeholder="오늘 하루 느낀 점이나 기록할 내용을 편하게 적어보세요...">${chk['global_memo'] || ''}</textarea>`;
+  root.appendChild(memoBox);
+  document.getElementById('memo-input').addEventListener('input', (e) => { chk['global_memo'] = e.target.value; saveState(); });
+
+  let lastBlock;
+  S.forEach(b => {
+    lastBlock = b;
+    const cs = C[b.cat] || C.notes; const nc = NO_CB.has(b.cat);
+    if (b.sec && b.sec !== lastSec){
+      const sl = document.createElement('div'); sl.className = 'sec'; sl.textContent = b.sec;
+      root.appendChild(sl); lastSec = b.sec;
+    }
+    const wrap = document.createElement('div'); wrap.className = 'blk'; wrap.id = 'bl-' + b.id; wrap.style.cssText = `background:${cs.bg};border-color:${cs.bd}`;
+    let hdrHTML = `<div class="blk-hdr" style="background:${cs.dot}12;border-bottom-color:${cs.bd}30"><div class="dot" style="background:${cs.dot}"></div>`;
+    if(b.time) hdrHTML += `<span class="btime" style="color:${cs.dot}">${b.time}</span>`;
+    hdrHTML += `<span class="bcat" style="background:${cs.dot}22;color:${cs.dot}">${cs.lbl}</span>`;
+    if(!nc) hdrHTML += `<span class="btn-check-all" id="all-${b.id}" style="color:${cs.dot}">ALL</span>`;
+    hdrHTML += `<span class="btitle">${b.title}</span>`;
+    if(b.dur) hdrHTML += `<span class="bdur" style="background:${cs.dot}18;color:${cs.dot}">${b.dur}</span>`;
+    hdrHTML += `<span class="done-mark" id="dm-${b.id}">✅</span></div>`;
+    wrap.innerHTML = hdrHTML;
+
+    const btnAll = wrap.querySelector(`#all-${b.id}`);
+    if(btnAll) {
+      btnAll.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isAllDone = b.items.every((_, i) => chk[b.id + '-' + i]);
+        b.items.forEach((_, i) => {
+          const iid = b.id + '-' + i; chk[iid] = !isAllDone;
+          const cb = document.getElementById(iid); if(cb) cb.checked = !isAllDone;
+          const tx = document.getElementById('tx-' + iid); if(tx) tx.classList.toggle('done', !isAllDone);
+        });
+        checkBlockDone(b); updateStats(); saveState();
+      });
+    }
+
+    const body = document.createElement('div'); body.className = 'blk-body';
+    b.items.forEach((item, i) => {
+      const iid = b.id + '-' + i; const isW = /^(\【주의\】|\【사실\】|\【CBT\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(item);
+      const row = document.createElement(nc ? 'div' : 'label'); row.className = 'irow' + (nc ? ' nc' : ''); if (!nc) row.htmlFor = iid;
+      if (nc){ row.innerHTML = `<span class="ibullet" style="color:${cs.dot}">•</span>`; }
+      else {
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = iid; cb.style.accentColor = cs.dot; cb.checked = !!chk[iid];
+        cb.addEventListener('change', () => { chk[iid] = cb.checked; document.getElementById('tx-' + iid).classList.toggle('done', cb.checked); checkBlockDone(b); updateStats(); saveState(); });
+        row.appendChild(cb);
+      }
+      const tx = document.createElement('span'); tx.className = 'itxt' + (isW ? ' warn' : '');
+      tx.id = 'tx-' + iid; tx.style.color = isW ? cs.tc : '#2A2010'; tx.textContent = item;
+      if (chk[iid]) tx.classList.add('done'); row.appendChild(tx); body.appendChild(row);
+    });
+
+    if(b.pomo !== undefined || b.cat === 'reserve') {
+        const pmId = 'pmemo-' + b.id;
+        const pmInput = document.createElement('input');
+        pmInput.type = 'text';
+        pmInput.id = 'pmemo-input-' + b.id;  // ★ [Firebase 추가] syncUIFromChk에서 찾을 수 있도록 ID 부여
+        pmInput.className = 'pomo-memo'; pmInput.spellcheck = false;
+        pmInput.placeholder = '✏️ 이 시간에 어떤 과제를 했는지 기록하세요...';
+        pmInput.value = chk[pmId] || '';
+        pmInput.addEventListener('input', (e) => { chk[pmId] = e.target.value; saveState(); });
+        body.appendChild(pmInput);
+    }
+
+    wrap.appendChild(body); root.appendChild(wrap);
+  });
+
+  const wb = document.createElement('div'); wb.className = 'week-box';
+  wb.innerHTML = `<div class="week-ttl">주간 마인드셋 & 일정 미리보기</div>`;
+  W.forEach(w => { wb.innerHTML += `<div class="wrow"><span class="wdate ${w.today ? 'today' : ''}">${w.d}</span><span class="wdesc">${w.t}</span></div>`; });
+  root.appendChild(wb);
+  const ft = document.createElement('div'); ft.className = 'footer';
+  ft.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div>`;
+  root.appendChild(ft);
+  
+  if(lastBlock) checkBlockDone(lastBlock); updateStats(); updateStampUI();
+}
+
+// ── 데이터 복사/내보내기 로직 ──
+document.getElementById('btnExport').addEventListener('click', () => {
+  const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(chk))));
+  navigator.clipboard.writeText(dataStr).then(() => alert('데이터 임시 복사 완료!')).catch(() => prompt('수동 복사:', dataStr));
+});
+document.getElementById('btnImport').addEventListener('click', () => {
+  const input = prompt('데이터 코드를 넣어주세요:');
+  if(input) { try { chk = JSON.parse(decodeURIComponent(escape(atob(input)))); saveState(); location.reload(); } catch(e) { alert('잘못된 코드입니다.'); } }
+});
+document.getElementById('btnGithubExport').addEventListener('click', () => {
+  const rx = /🩸|생리|정신과|약 복용|알약|자나팜정|에프람정|모리티톤정|진료|⚕️|CBT/i;
+  const rxP = /\s*\([^)]*(생리|진료|시간 배분|CBT)[^)]*\)/g;
+  
+  let eD = 0, eT = 0, rD = 0, rT = 0, pD = 0, reqPomoTotal = 0;
+  const expS = S.filter(b => b.cat !== 'meds').map(b => {
+      const isR = RSV_IDS.has(b.id) || b.cat === 'reserve';
+      if (!NO_CB.has(b.cat) && !isR) eT += b.items.length; 
+      if (isR) rT += b.items.length;
+      
+      let bA = b.items.length > 0; 
+      let bonusCount = 0;
+
+      const filteredItems = b.items.map((it, i) => {
+          const iid = b.id + '-' + i;
+          if(!NO_CB.has(b.cat)) {
+              if(chk[iid]) {
+                  if(isR) rD++; else eD++;
+                  bonusCount++;
+              } else {
+                  bA = false;
+              }
+          } else {
+              bA = false;
+          }
+          return { t: it, id: iid };
+      }).filter(it => !rx.test(it.t));
+      
+      if (b.pomo !== undefined) {
+          if (b.pomo === 'bonus') {
+              pD += bonusCount;
+          } else {
+              reqPomoTotal++;
+              if (bA) pD++;
+          }
+      }
+
+      return {
+          ...b, sec: b.sec ? b.sec.replace(rx, '').replace(rxP, '') : '', title: b.title.replace(rx, '').replace(rxP, ''),
+          items: filteredItems
+      };
+  });
+  
+  const expW = W.map(w => ({ ...w, t: w.t.replace(/🩸\s*|⚕️\s*|🗣️\s*/g, '').replace(rxP, '').replace(/\s*&\s*진료/, '').replace(/CBT 상담/i, '멘탈 점검') }));
+  
+  const totalItemsDone = eD + rD;
+  const pct = eT > 0 ? Math.round((totalItemsDone / eT) * 100) : 0;
+  const pctHTML = pct > 100 ? `${pct}% <span class="over-badge">🌟초과달성!</span>` : `${pct}%`;
+  const sm = pD * 25;
+
+  let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${DailyConfig.dateLabel} 기록</title><style>${document.querySelector('style').innerHTML.replace('.btn-check-all{', '.btn-check-all{display:none;')}</style></head><body>`;
+  html += `<div id="hdr"><div class="hdr-row"><div class="hdr-l"><div class="date-lbl">${DailyConfig.dateLabel}</div><div class="title">펭귄 일정표 📋</div><div class="badge-row"><span class="badge">${DailyConfig.badge1}</span></div></div><div class="hdr-r"><div class="pct-big" style="color:${pct>100?'#FFD700':'#7EC8A0'}">${pctHTML}</div><div class="pct-sub">${totalItemsDone} / ${eT}</div></div></div><div class="pbar-wrap"><div class="pbar-fill" style="width:${Math.min(pct, 100)}%"></div></div><div class="chips"><div class="chip">🍅 완료: <b>${pD}/${reqPomoTotal}</b></div><div class="chip">⏱️ 순공: <b>${Math.floor(sm/60)}h ${sm%60}m</b></div><div class="chip">✅ 전체: <b>${totalItemsDone}/${eT}</b></div></div></div><div id="content">`;
+  if(DailyConfig.alert1HTML) html += `<div class="alert">${DailyConfig.alert1HTML.replace(rx, '').replace(rxP, '').replace(/CBT/g, '마인드셋')}</div>`;
+  
+  const stampHTML = document.querySelector('.stamp-wrap').innerHTML;
+  const cleanStampHTML = stampHTML.replace(/<div class="stamp-interactive">[\s\S]*?<!--interactive-end-->/, '');
+  html += `<div class="stamp-wrap">${cleanStampHTML}</div>`;
+
+  let lS = ''; expS.forEach(b => {
+      const cs = C[b.cat] || C.notes; const nc = NO_CB.has(b.cat);
+      if (b.sec && b.sec !== lS){ html += `<div class="sec">${b.sec}</div>`; lS = b.sec; }
+      let bA = b.items.length > 0 && b.items.every(it => chk[it.id]); if (nc) bA = false;
+      html += `<div class="blk ${bA ? 'all-done' : ''}" style="background:${cs.bg};border-color:${cs.bd}"><div class="blk-hdr" style="background:${cs.dot}12;border-bottom-color:${cs.bd}30"><div class="dot" style="background:${cs.dot}"></div>`;
+      if (b.time) html += `<span class="btime" style="color:${cs.dot}">${b.time}</span>`;
+      html += `<span class="bcat" style="background:${cs.dot}22;color:${cs.dot}">${cs.lbl}</span><span class="btitle">${b.title}</span>`;
+      if (b.dur) html += `<span class="bdur" style="background:${cs.dot}18;color:${cs.dot}">${b.dur}</span>`;
+      html += `<span class="done-mark" style="display:${bA ? 'inline' : 'none'}">✅</span></div><div class="blk-body">`;
+      
+      b.items.forEach(it => { const iC = !!chk[it.id]; const iW = /^(\【주의\】|\【팩트\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(it.t);
+          html += `<label class="irow ${nc ? 'nc' : ''}" style="cursor:default;">`;
+          if (nc) html += `<span class="ibullet" style="color:${cs.dot}">•</span>`; else html += `<input type="checkbox" disabled ${iC ? 'checked' : ''} style="margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:default;accent-color:${cs.dot}">`;
+          html += `<span class="itxt ${iW ? 'warn' : ''} ${iC ? 'done' : ''}" style="color:${iW ? cs.tc : '#2A2010'};font-size:12.5px;line-height:1.55;">${it.t.replace(/【CBT】/g, '【마인드셋】')}</span></label>`;
+      }); 
+
+      if(b.pomo !== undefined || b.cat === 'reserve') {
+          const pmId = 'pmemo-' + b.id;
+          const savedMemo = chk[pmId] || '';
+          const filteredMemo = savedMemo.replace(rx, '').replace(rxP, '').replace(/CBT/gi, '마인드셋');
+          if(filteredMemo.trim() !== '') {
+              html += `<div style="border-top:1px dashed rgba(0,0,0,0.15); margin-top:7px; padding-top:7px; font-size:11.5px; color:#555; line-height:1.5;"><strong>✏️ 내가 한 일:</strong> ${filteredMemo}</div>`;
+          }
+      }
+
+      html += `</div></div>`;
+  });
+  html += `<div class="sec">주간 마인드셋 & 일정 미리보기</div><div class="week-box">`;
+  expW.forEach(w => { html += `<div class="wrow"><span class="wdate ${w.today ? 'today' : ''}">${w.d}</span><span class="wdesc">${w.t}</span></div>`; });
+  html += `</div><div class="footer"><div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div></div></div></body></html>`;
+  const fD = DailyConfig.dateLabel.split(' ')[0].replace(/\./g, '-');
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fD}_complete.html`; a.click(); URL.revokeObjectURL(url);
+});
+
+// ★ [Firebase 추가] render() 대신 initApp()으로 시작
+initApp();
+</script>
+</body>
+</html>
