@@ -9,48 +9,15 @@
 <!-- 🌟 [데이터 입력 구역] 파일을 열면 가장 먼저 보이는 곳 🌟 -->
 <script>
 // =========================================================================
-// ⬇️ [영역 A] 매일 갈아끼우는 데이터 영역 ⬇️
+// URL 파라미터(예: ?date=2026-07-16)를 읽어서 해당 날짜의 JS 파일을 동적으로 불러옵니다.
 // =========================================================================
-
-const DailyConfig = {
-  dateLabel: "YYYY.MM.DD 요일",
-  badge1: "🔥 준비 중",
-  badge2: "",
-  alert1HTML: "<strong>🔥 알림을 기다리는 중입니다.</strong><br>새로운 스케줄 데이터를 입력해 주세요.",
-  alert2HTML: "",
-  footerQuote: "오늘의 나를 응원합니다.</div><div style=\"font-size:11px;opacity:.65;margin-top:5px\">파이팅!",
-  storageKey: "penguin_chk_template_v8",
-  prevStampPoints: 0 
-};
-
-const SB = [];
-const LB = [];
-const W = [];
-
-const S = [
-  {id:'dummy', sec:'예시 세션', time:'08:00', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 01', items:['체크리스트 1']},
-  
-  {id:'control', sec:'🎮 게임 타임', time:'20:00', dur:'60분', cat:'special',
-   title:'⚖️ 스스로 결정하는 1시간',
-   items:[
-     '1시간 동안 당당하게 게임하기',
-     '공부를 진행했다면, [🆘 예비 뽀모도로] 구역에 가서 체크!',
-   ]},
-   
-  {id:'rsv', sec:'🌟 추가 보너스 & 자투리 뽀모', time:'', dur:'', cat:'reserve', pomo:'bonus',
-   title:'🆘 예비 뽀모도로 (초과 달성용)',
-   items:[
-     '🎮 게임 대신 뽀모 1 (도장 1개 획득 이벤트!)',
-     '🎮 게임 대신 뽀모 2 (도장 1개 획득 이벤트!)',
-     '⏱️ 일찍 끝난 자투리 뽀모 1 (도장 1/3개 획득)',
-     '⏱️ 일찍 끝난 자투리 뽀모 2 (도장 1/3개 획득)',
-     '⏱️ 일찍 끝난 자투리 뽀모 3 (도장 1/3개 획득)',
-   ]},
-];
-
-// =========================================================================
-// ⬆️ [영역 A] 끝 ⬆️
-// =========================================================================
+const urlParams = new URLSearchParams(window.location.search);
+const dateParam = urlParams.get('date');
+if(dateParam) {
+    document.write(`<script src="${dateParam}.js"><\/script>`);
+} else {
+    alert('⚠️ 날짜 정보가 없습니다. index.html을 통해 접근해주세요.');
+}
 </script>
 
 <style>
