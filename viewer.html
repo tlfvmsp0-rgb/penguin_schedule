@@ -200,13 +200,13 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
 .itxt.done{text-decoration:line-through;color:#BBBBBB}
 .itxt.warn{font-weight:500}
 
-.week-box{background:var(--card);border-radius:11px;padding:14px;margin-top:6px;border:1.5px solid #D0CCC4}
-.week-ttl{font-family:'DM Serif Display',serif;font-size:14px;margin-bottom:10px;color:var(--night)}
-.wrow{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #EDEDE8;font-size:12px;line-height:1.45}
-.wrow:last-child{border-bottom:none}
-.wdate{font-weight:700;min-width:62px;color:var(--dawn);flex-shrink:0}
-.wdate.today{color:#2A8040}
-.wdesc{color:#444}
+.preview-box{background:var(--card);border-radius:11px;padding:14px;margin-top:6px;border:1.5px solid #D0CCC4}
+.preview-ttl{font-family:'DM Serif Display',serif;font-size:14px;margin-bottom:10px;color:var(--night)}
+.prow{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #EDEDE8;font-size:12px;line-height:1.45}
+.prow:last-child{border-bottom:none}
+.pdate{font-weight:700;min-width:62px;color:var(--dawn);flex-shrink:0}
+.pdate.today{color:#2A8040}
+.pdesc{color:#444}
 .footer{text-align:center;margin-top:20px;padding:16px;background:#1A3A1A;border-radius:11px;color:#7EC8A0}
 
 /* 🌟 초과달성 뱃지 애니메이션 */
@@ -658,9 +658,13 @@ function render(){
     wrap.appendChild(body); root.appendChild(wrap);
   });
 
-  const wb = document.createElement('div'); wb.className = 'week-box';
-  wb.innerHTML = `<div class="week-ttl">주간 마인드셋 & 일정 미리보기</div>`;
-  W.forEach(w => { wb.innerHTML += `<div class="wrow"><span class="wdate ${w.today ? 'today' : ''}">${w.d}</span><span class="wdesc">${w.t}</span></div>`; });
+const wb = document.createElement('div'); 
+  wb.className = 'preview-box';
+  wb.innerHTML = `<div class="preview-ttl">일정 미리보기</div>`;
+  const activePreview = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
+  activePreview.forEach(w => { 
+    wb.innerHTML += `<div class="prow"><span class="pdate ${w.today ? 'today' : ''}">${w.d}</span><span class="pdesc">${w.t}</span></div>`; 
+  });
   root.appendChild(wb);
   const ft = document.createElement('div'); ft.className = 'footer';
   ft.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div>`;
@@ -721,7 +725,8 @@ document.getElementById('btnGithubExport').addEventListener('click', () => {
       };
   });
   
-  const expW = W.map(w => ({ ...w, t: w.t.replace(/🩸\s*|⚕️\s*|🗣️\s*/g, '').replace(rxP, '').replace(/\s*&\s*진료/, '').replace(/CBT 상담/i, '멘탈 점검') }));
+const activePreviewData = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
+  const expW = activePreviewData.map(w => ({ ...w, t: w.t.replace(/🩸\s*|⚕️\s*|🗣️\s*/g, '').replace(rxP, '').replace(/\s*&\s*진료/, '').replace(/CBT 상담/i, '멘탈 점검') }));
   
   const totalItemsDone = eD + rD;
   const pct = eT > 0 ? Math.round((totalItemsDone / eT) * 100) : 0;
@@ -763,8 +768,8 @@ document.getElementById('btnGithubExport').addEventListener('click', () => {
 
       html += `</div></div>`;
   });
-  html += `<div class="sec">주간 마인드셋 & 일정 미리보기</div><div class="week-box">`;
-  expW.forEach(w => { html += `<div class="wrow"><span class="wdate ${w.today ? 'today' : ''}">${w.d}</span><span class="wdesc">${w.t}</span></div>`; });
+  html += `<div class="sec">일정 미리보기</div><div class="preview-box">`;
+  expW.forEach(w => { html += `<div class="prow"><span class="pdate ${w.today ? 'today' : ''}">${w.d}</span><span class="pdesc">${w.t}</span></div>`; });
   html += `</div><div class="footer"><div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div></div></div></body></html>`;
   const fD = DailyConfig.dateLabel.split(' ')[0].replace(/\./g, '-');
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fD}_complete.html`; a.click(); URL.revokeObjectURL(url);
