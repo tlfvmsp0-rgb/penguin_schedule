@@ -6,11 +6,8 @@
 <title>펭귄 일정표 📋</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 
-<!-- 🌟 [데이터 입력 구역] 파일을 열면 가장 먼저 보이는 곳 🌟 -->
+<!-- 🌟 [데이터 입력 구역] URL 파라미터를 읽어 날짜별 데이터를 호출하는 엔진 🌟 -->
 <script>
-// =========================================================================
-// URL 파라미터(예: ?date=2026-07-16)를 읽어서 해당 날짜의 JS 파일을 동적으로 불러옵니다.
-// =========================================================================
 const urlParams = new URLSearchParams(window.location.search);
 const dateParam = urlParams.get('date');
 if(dateParam) {
@@ -35,13 +32,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .hdr-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .hdr-l .date-lbl{font-size:9px;letter-spacing:3px;opacity:.5;margin-bottom:2px}
 .hdr-l .title{font-family:'DM Serif Display',serif;font-size:18px;line-height:1.2}
-.badge-row{margin-top:5px; margin-bottom:5px;}
+.badge-row{margin-top:6px; margin-bottom:4px;}
 .badge{display:inline-block;background:#2A8040;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
 .badge2{display:inline-block;background:#A03030;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:5px;letter-spacing:.5px}
-
-.data-btns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
-.btn-data{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:10px;padding:4px 8px;border-radius:4px;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif;letter-spacing:0.5px}
-.btn-data:hover{background:rgba(255,255,255,0.3)}
 
 .hdr-r{text-align:right;flex-shrink:0;position:relative;}
 .pct-big{font-size:30px;font-weight:700;color:#7EC8A0;line-height:1;transition:all 0.3s ease;}
@@ -52,15 +45,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .chip{background:rgba(255,255,255,.1);padding:2px 9px;border-radius:20px;font-size:10px}
 .chip b{color:#7EC8A0}
 
-/* ── 동기화 상태 칩 ── */
 #sync-status{transition:color 0.5s ease; font-size:10px;}
 
-/* ── 메인 레이아웃 (스마트 메모장 대응) ── */
 .main-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  max-width: 1000px; /* PC화면에서 메모장과 스케줄을 함께 담을 너비 */
+  max-width: 1000px;
   margin: 0 auto;
   position: relative;
 }
@@ -72,7 +63,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   padding: 12px 10px 60px;
 }
 
-/* ──[엔진 1-2] 도장 시스템 CSS ── */
+/* ── 도장판 UI CSS ── */
 .stamp-wrap { background:#FFF8EC; border:2px solid #E0B080; border-radius:11px; padding:12px; margin-bottom:12px; }
 .stamp-ttl { font-size:12px; font-weight:700; color:#A04020; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
 .stamp-controls { display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap; }
@@ -88,7 +79,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .stamp-fraction { font-size:12px; font-weight:700; color:#E06040; margin-left:5px; background:rgba(224,96,64,0.1); padding:3px 7px; border-radius:12px; }
 @keyframes stamp-pop { 0% { transform: scale(2.5) rotate(-20deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
 
-/* 🌟 스마트 메모장 UI (플로팅 & 고정 하이브리드) 🌟 */
+/* 🌟 스마트 메모장 UI (플로팅) 🌟 */
 .smart-memo-container {
   position: fixed;
   right: 20px;
@@ -104,7 +95,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   flex-direction: column;
 }
 
-/* 닫혀 있을 때 (최소화 상태) */
 .smart-memo-container.minimized {
   transform: translateY(calc(100% - 40px));
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
@@ -122,58 +112,26 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   cursor: pointer;
 }
 
-.smart-memo-header:hover {
-  background: #DFD9CC;
-}
-
+.smart-memo-header:hover { background: #DFD9CC; }
 .memo-ttl { font-size:12px; font-weight:700; color:#887030; letter-spacing:1px; display:flex; align-items:center; gap:5px;}
 .memo-toggle-btn { font-size: 14px; color: #887030; font-weight: bold; }
-
-.smart-memo-body {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-}
+.smart-memo-body { padding: 12px; display: flex; flex-direction: column; }
 
 #memo-input {
-  width: 100%;
-  height: 250px; /* 높이를 키워서 넉넉하게 */
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #2A2010;
-  resize: vertical;
-  font-family: inherit;
+  width: 100%; height: 250px; background: transparent; border: none; outline: none;
+  font-size: 13px; line-height: 1.6; color: #2A2010; resize: vertical; font-family: inherit;
 }
 
-/* 스마트폰 (좁은 화면) 대응: 하단에 100% 꽉 차는 팝업 형태로 변환 */
 @media (max-width: 400px) {
-  .smart-memo-container {
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    border-radius: 15px 15px 0 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-  }
-  
-  .smart-memo-container.minimized {
-    transform: translateY(calc(100% - 45px));
-  }
-  
-  #memo-input {
-    height: 150px; /* 폰에서는 키보드가 올라오므로 높이를 살짝 줄임 */
-  }
+  .smart-memo-container { right: 0; bottom: 0; width: 100%; border-radius: 15px 15px 0 0; border-left: none; border-right: none; border-bottom: none; }
+  .smart-memo-container.minimized { transform: translateY(calc(100% - 45px)); }
+  #memo-input { height: 150px; }
 }
 
-/* 뽀모 메모 */
 .pomo-memo { width: 100%; border: none; border-top: 1px dashed rgba(0,0,0,0.15); background: transparent; padding: 7px 0 0 0; margin-top: 7px; font-size: 12px; color: #2A2010; outline: none; font-family: inherit; }
 .pomo-memo::placeholder { color: #A09888; font-style: italic; }
 
-.alert{background:#FFF3E0;border:2px solid #E08020;border-radius:11px;padding:11px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
+.alert {background:#FFF3E0;border:2px solid #E08020;border-radius:11px;padding:11px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
 .alert strong{color:#C05010}
 .alert-menses{background:#FEF0F5;border:2px solid #D06080;border-radius:11px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65}
 .alert-menses strong{color:#B03060}
@@ -200,6 +158,7 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
 .itxt.done{text-decoration:line-through;color:#BBBBBB}
 .itxt.warn{font-weight:500}
 
+/* ── [일정 미리보기] 최적화 CSS ── */
 .preview-box{background:var(--card);border-radius:11px;padding:14px;margin-top:6px;border:1.5px solid #D0CCC4}
 .preview-ttl{font-family:'DM Serif Display',serif;font-size:14px;margin-bottom:10px;color:var(--night)}
 .prow{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #EDEDE8;font-size:12px;line-height:1.45}
@@ -207,9 +166,9 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
 .pdate{font-weight:700;min-width:62px;color:var(--dawn);flex-shrink:0}
 .pdate.today{color:#2A8040}
 .pdesc{color:#444}
+
 .footer{text-align:center;margin-top:20px;padding:16px;background:#1A3A1A;border-radius:11px;color:#7EC8A0}
 
-/* 🌟 초과달성 뱃지 애니메이션 */
 @keyframes overachieve {
   0% { transform: scale(0.8); opacity: 0; }
   50% { transform: scale(1.2); opacity: 1; }
@@ -233,11 +192,6 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
         <span class="badge" id="el-badge1">로딩중</span>
         <span class="badge2" id="el-badge2" style="display:none;"></span>
       </div>
-      <div class="data-btns">
-        <button id="btnExport" class="btn-data">💾 임시 복사</button>
-        <button id="btnImport" class="btn-data">📂 불러오기</button>
-        <button id="btnGithubExport" class="btn-data" style="background:rgba(255,100,100,0.2);border-color:rgba(255,100,100,0.5);">💾 깃허브 제출용 다운로드</button>
-      </div>
     </div>
     <div class="hdr-r">
       <div class="pct-big" id="pPct">0%</div>
@@ -249,18 +203,13 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
     <div class="chip">🍅 완료: <b id="cPomo">0/0</b></div>
     <div class="chip">⏱️ 순공: <b id="cStudy">0h 0m</b></div>
     <div class="chip">✅ 전체: <b id="cAll">0/0</b></div>
-    <!-- ★ [Firebase 추가] 동기화 상태 표시 -->
     <div class="chip"><b id="sync-status" style="color:#7EC8A0;">⏳ 연결 중...</b></div>
   </div>
 </div>
 
-<!-- 메인 레이아웃 (스케줄 + 스마트 메모장) -->
 <div class="main-container">
-  
-  <!-- 왼쪽 스케줄 영역 -->
   <div id="content"></div>
 
-  <!-- 오른쪽 스마트 메모장 영역 (플로팅) -->
   <div class="smart-memo-container minimized" id="smartMemoBox">
     <div class="smart-memo-header" id="memoToggleBtn">
       <div class="memo-ttl">✍️ 나만의 비밀 메모장 <span style="font-size:9px; color:#A09888; font-weight:normal;">(자동저장)</span></div>
@@ -270,16 +219,14 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
       <textarea id="memo-input" spellcheck="false" placeholder="공부 중 떠오르는 딴짓이나 아이디어를 즉시 적어두고 다시 몰입하세요..."></textarea>
     </div>
   </div>
-
 </div>
 
-<!-- ★ [Firebase 추가] Firebase SDK (엔진보다 먼저 로드) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
 // =========================================================================
-// ★ [Firebase 추가] 설정 영역 ★
+// ★ [Firebase] 설정 영역 ★
 // =========================================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDWboFWcolJUbnuq0Vl-piK14_ebWpFXVU",
@@ -290,12 +237,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "68169760536",
   appId: "1:68169760536:web:d76711360a22d2f8ffe86d"
 };
-// =========================================================================
-// ★ [Firebase 추가] 설정 영역 끝 ★
-// =========================================================================
 
-
-// ── [엔진 3] 카테고리 색상표 및 핵심 로직 ──
+// ── 카테고리 색상표 ──
 const C = {
   special:{ bg:'#FFF4EC', bd:'#D06020', dot:'#C05010', lbl:'⚠️ 특별',       tc:'#C05010' },
   morning:{ bg:'#FEF8EE', bd:'#D89050', dot:'#C07030', lbl:'🌅 기상 루틴',   tc:'#C07030' },
@@ -311,10 +254,6 @@ const C = {
   reserve:{ bg:'#FFF8EC', bd:'#C89040', dot:'#A07020', lbl:'🆘 초과/보너스',  tc:'#A07020' },
   notes:  { bg:'#FBF6EB', bd:'#A88040', dot:'#887030', lbl:'📌 유의사항',    tc:'#887030' },
 };
-
-// =========================================================================
-// ★ [Firebase 추가] 데이터 동기화 로직 ★
-// =========================================================================
 
 let chk = {};              
 let _dbRef = null;         
@@ -378,7 +317,6 @@ async function initApp() {
   } catch(e) {}
   render();
 
-  // 스마트 메모장 토글 이벤트 리스너 바인딩
   const memoBox = document.getElementById('smartMemoBox');
   const memoBtn = document.getElementById('memoToggleBtn');
   const memoIcon = document.getElementById('memoToggleIcon');
@@ -389,7 +327,7 @@ async function initApp() {
         memoIcon.textContent = '▲ 펼치기';
     } else {
         memoIcon.textContent = '▼ 닫기';
-        document.getElementById('memo-input').focus(); // 열면 바로 타자 칠 수 있게 포커스
+        document.getElementById('memo-input').focus();
     }
   });
 
@@ -400,7 +338,6 @@ async function initApp() {
 
   if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
     updateSyncStatus('offline');
-    const original = saveState;
     window.saveState = function() {
       try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
     };
@@ -441,7 +378,6 @@ async function initApp() {
 const NO_CB = new Set(['notes']);
 const RSV_IDS = new Set(['rsv_pomo', 'transit']);
 
-// ── [엔진 4] 초과 달성 연산 시스템 ──
 function updateStats(){
   let reqTotal = 0, reqDone = 0, rsvTotal = 0, rsvDone = 0;
   let reqPomoTotal = 0, reqPomoDone = 0, rsvPomoDone = 0;
@@ -566,7 +502,7 @@ function render(){
       </div>
       <div class="stamp-guide">
           <strong style="color:#A04020;">[💡 도장 교환 가이드]</strong> (도장 1개 = 3뽀모 = 1.5시간 몰입)<br>
-          ⏳ <strong>시간:</strong> 단순 오락(게임/유튜브) 1시간당 <strong>-1개</strong> / 생산적 취미(OC 로그/창작) 1시간당 <strong>-0.5개</strong><br>
+          ⏳ <strong>시간:</strong> 단순 오락(게임/유튜브) 1시간당 <strong>-1개</strong> / 생산적 취미(인장/그림 등) 1시간당 <strong>-0.5개</strong><br>
           💬 <strong>상호작용:</strong> 자투리/쉬는 시간 역극 답장은 <strong>무료</strong> (단, 쉬는 시간 엄수)<br>
           💸 <strong>비용:</strong> 만원 이하 식사 <strong>무료</strong> / 고가 외식(만원 초과) 만원당 <strong>-1개</strong> / 취미용품 만원당 <strong>-1개</strong><br>
           🍩 <strong>건강:</strong> 달콤한 디저트·음료(당류) <strong>-1개</strong> / 음주 <strong>-2개</strong>
@@ -658,122 +594,24 @@ function render(){
     wrap.appendChild(body); root.appendChild(wrap);
   });
 
-const wb = document.createElement('div'); 
+  // ── [일정 미리보기] 최적화 렌더링 ──
+  const wb = document.createElement('div'); 
   wb.className = 'preview-box';
   wb.innerHTML = `<div class="preview-ttl">일정 미리보기</div>`;
+  
   const activePreview = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
+  
   activePreview.forEach(w => { 
     wb.innerHTML += `<div class="prow"><span class="pdate ${w.today ? 'today' : ''}">${w.d}</span><span class="pdesc">${w.t}</span></div>`; 
   });
   root.appendChild(wb);
+
   const ft = document.createElement('div'); ft.className = 'footer';
   ft.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div>`;
   root.appendChild(ft);
   
   if(lastBlock) checkBlockDone(lastBlock); updateStats(); updateStampUI();
 }
-
-// ── 데이터 복사/내보내기 로직 ──
-document.getElementById('btnExport').addEventListener('click', () => {
-  const dataStr = btoa(unescape(encodeURIComponent(JSON.stringify(chk))));
-  navigator.clipboard.writeText(dataStr).then(() => alert('데이터 임시 복사 완료!')).catch(() => prompt('수동 복사:', dataStr));
-});
-document.getElementById('btnImport').addEventListener('click', () => {
-  const input = prompt('데이터 코드를 넣어주세요:');
-  if(input) { try { chk = JSON.parse(decodeURIComponent(escape(atob(input)))); saveState(); location.reload(); } catch(e) { alert('잘못된 코드입니다.'); } }
-});
-document.getElementById('btnGithubExport').addEventListener('click', () => {
-  const rx = /🩸|생리|정신과|약 복용|알약|자나팜정|에프람정|모리티톤정|진료|⚕️|CBT/i;
-  const rxP = /\s*\([^)]*(생리|진료|시간 배분|CBT)[^)]*\)/g;
-  
-  let eD = 0, eT = 0, rD = 0, rT = 0, pD = 0, reqPomoTotal = 0;
-  const expS = S.filter(b => b.cat !== 'meds').map(b => {
-      const isR = RSV_IDS.has(b.id) || b.cat === 'reserve';
-      if (!NO_CB.has(b.cat) && !isR) eT += b.items.length; 
-      if (isR) rT += b.items.length;
-      
-      let bA = b.items.length > 0; 
-      let bonusCount = 0;
-
-      const filteredItems = b.items.map((it, i) => {
-          const iid = b.id + '-' + i;
-          if(!NO_CB.has(b.cat)) {
-              if(chk[iid]) {
-                  if(isR) rD++; else eD++;
-                  bonusCount++;
-              } else {
-                  bA = false;
-              }
-          } else {
-              bA = false;
-          }
-          return { t: it, id: iid };
-      }).filter(it => !rx.test(it.t));
-      
-      if (b.pomo !== undefined) {
-          if (b.pomo === 'bonus') {
-              pD += bonusCount;
-          } else {
-              reqPomoTotal++;
-              if (bA) pD++;
-          }
-      }
-
-      return {
-          ...b, sec: b.sec ? b.sec.replace(rx, '').replace(rxP, '') : '', title: b.title.replace(rx, '').replace(rxP, ''),
-          items: filteredItems
-      };
-  });
-  
-const activePreviewData = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
-  const expW = activePreviewData.map(w => ({ ...w, t: w.t.replace(/🩸\s*|⚕️\s*|🗣️\s*/g, '').replace(rxP, '').replace(/\s*&\s*진료/, '').replace(/CBT 상담/i, '멘탈 점검') }));
-  
-  const totalItemsDone = eD + rD;
-  const pct = eT > 0 ? Math.round((totalItemsDone / eT) * 100) : 0;
-  const pctHTML = pct > 100 ? `${pct}% <span class="over-badge">🌟초과달성!</span>` : `${pct}%`;
-  const sm = pD * 25;
-
-  let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${DailyConfig.dateLabel} 기록</title><style>${document.querySelector('style').innerHTML.replace('.btn-check-all{', '.btn-check-all{display:none;')}</style></head><body>`;
-  html += `<div id="hdr"><div class="hdr-row"><div class="hdr-l"><div class="date-lbl">${DailyConfig.dateLabel}</div><div class="title">펭귄 일정표 📋</div><div class="badge-row"><span class="badge">${DailyConfig.badge1}</span></div></div><div class="hdr-r"><div class="pct-big" style="color:${pct>100?'#FFD700':'#7EC8A0'}">${pctHTML}</div><div class="pct-sub">${totalItemsDone} / ${eT}</div></div></div><div class="pbar-wrap"><div class="pbar-fill" style="width:${Math.min(pct, 100)}%"></div></div><div class="chips"><div class="chip">🍅 완료: <b>${pD}/${reqPomoTotal}</b></div><div class="chip">⏱️ 순공: <b>${Math.floor(sm/60)}h ${sm%60}m</b></div><div class="chip">✅ 전체: <b>${totalItemsDone}/${eT}</b></div></div></div><div id="content">`;
-  if(DailyConfig.alert1HTML) html += `<div class="alert">${DailyConfig.alert1HTML.replace(rx, '').replace(rxP, '').replace(/CBT/g, '마인드셋')}</div>`;
-  
-  const stampHTML = document.querySelector('.stamp-wrap').innerHTML;
-  const cleanStampHTML = stampHTML.replace(/<div class="stamp-interactive">[\s\S]*?<!--interactive-end-->/, '');
-  html += `<div class="stamp-wrap">${cleanStampHTML}</div>`;
-
-  let lS = ''; expS.forEach(b => {
-      const cs = C[b.cat] || C.notes; const nc = NO_CB.has(b.cat);
-      if (b.sec && b.sec !== lS){ html += `<div class="sec">${b.sec}</div>`; lS = b.sec; }
-      let bA = b.items.length > 0 && b.items.every(it => chk[it.id]); if (nc) bA = false;
-      html += `<div class="blk ${bA ? 'all-done' : ''}" style="background:${cs.bg};border-color:${cs.bd}"><div class="blk-hdr" style="background:${cs.dot}12;border-bottom-color:${cs.bd}30"><div class="dot" style="background:${cs.dot}"></div>`;
-      if (b.time) html += `<span class="btime" style="color:${cs.dot}">${b.time}</span>`;
-      html += `<span class="bcat" style="background:${cs.dot}22;color:${cs.dot}">${cs.lbl}</span><span class="btitle">${b.title}</span>`;
-      if (b.dur) html += `<span class="bdur" style="background:${cs.dot}18;color:${cs.dot}">${b.dur}</span>`;
-      html += `<span class="done-mark" style="display:${bA ? 'inline' : 'none'}">✅</span></div><div class="blk-body">`;
-      
-      b.items.forEach(it => { const iC = !!chk[it.id]; const iW = /^(\【주의\】|\【팩트\】|\【외출 준비\】|⚠️|🌙|💧|📵|🎙️|🧘|⏰|🚫|🔑|✅|👀|🧠|🎧)/.test(it.t);
-          html += `<label class="irow ${nc ? 'nc' : ''}" style="cursor:default;">`;
-          if (nc) html += `<span class="ibullet" style="color:${cs.dot}">•</span>`; else html += `<input type="checkbox" disabled ${iC ? 'checked' : ''} style="margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:default;accent-color:${cs.dot}">`;
-          html += `<span class="itxt ${iW ? 'warn' : ''} ${iC ? 'done' : ''}" style="color:${iW ? cs.tc : '#2A2010'};font-size:12.5px;line-height:1.55;">${it.t.replace(/【CBT】/g, '【마인드셋】')}</span></label>`;
-      }); 
-
-      if(b.pomo !== undefined || b.cat === 'reserve') {
-          const pmId = 'pmemo-' + b.id;
-          const savedMemo = chk[pmId] || '';
-          const filteredMemo = savedMemo.replace(rx, '').replace(rxP, '').replace(/CBT/gi, '마인드셋');
-          if(filteredMemo.trim() !== '') {
-              html += `<div style="border-top:1px dashed rgba(0,0,0,0.15); margin-top:7px; padding-top:7px; font-size:11.5px; color:#555; line-height:1.5;"><strong>✏️ 내가 한 일:</strong> ${filteredMemo}</div>`;
-          }
-      }
-
-      html += `</div></div>`;
-  });
-  html += `<div class="sec">일정 미리보기</div><div class="preview-box">`;
-  expW.forEach(w => { html += `<div class="prow"><span class="pdate ${w.today ? 'today' : ''}">${w.d}</span><span class="pdesc">${w.t}</span></div>`; });
-  html += `</div><div class="footer"><div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div></div></div></body></html>`;
-  const fD = DailyConfig.dateLabel.split(' ')[0].replace(/\./g, '-');
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${fD}_complete.html`; a.click(); URL.revokeObjectURL(url);
-});
 
 initApp();
 </script>
