@@ -1,11 +1,11 @@
 const DailyConfig = {
-  dateLabel: "2026.08.11 화요일 [⚖️ 보유: 450kcal | ⏳ 쿨타임 해제 (사용 가능)]",
-  badge1: "💻 AI 신약개발 온라인강의",
-  badge2: "☕ 피서 카페 출근",
-  alert1HTML: "<strong>☀️ 온라인 강의 대비 정밀 시프트 적용</strong><br>오후 13시부터 자택(또는 카페)에서 4시간 동안 온라인 강의 수강이 예정되어 있습니다. 강의 시작 전 점심 식사(11:20), 약/양치, 식후 산책, 파워냅(30분)을 완벽하게 끝내기 위해 오전 일정을 15분씩 앞당겼습니다.",
-  alert2HTML: "<strong>🎁 주간 치팅밀 지급 완료</strong><br>새로운 주가 시작되어 치팅밀 +450kcal가 추가되었으며, 쿨타임도 완전히 해제되었습니다. 필요시 유연하게 활용하세요.",
-  footerQuote: "정밀하게 짜인 시간표는 생각할 필요 없이 몰입하게 만드는 최고의 도구다.</div><div style=\"font-size:11px;opacity:.65;margin-top:5px\">오늘 하루도 깔끔하게 완수해 보세요!",
-  storageKey: "penguin_chk_20260811",
+  dateLabel: "2026.08.12 수요일 [⚖️ 보유: 450kcal | ⏳ 쿨타임 해제 (사용 가능)]",
+  badge1: "☕ 피서 카페 출근",
+  badge2: "💊 신규 복합제 첫 복용",
+  alert1HTML: "<strong>☀️ 폭염 대비 카페 출근 지속</strong><br>무더위가 계속됨에 따라 이번 주도 카페로 출근합니다. 카페는 아침 일찍 오픈하므로 준비가 끝나는 대로 즉시 출발하여 시원하게 하루를 시작합니다.",
+  alert2HTML: "<strong>💊 저녁 칼/마/D/K 신규 영양제 추가</strong><br>오늘 저녁부터 새로 구매하신 복합 영양제를 복용합니다. 점심 센트룸과의 흡수 방해를 예방하기 위해 저녁 식후에 안전하게 배치되었으며, 마그네슘의 이완 효과로 숙면 시너지를 극대화합니다.",
+  footerQuote: "정확한 영양 설계와 정밀한 시간 관리가 내 몸을 가장 강력하게 만든다.</div><div style=\"font-size:11px;opacity:.65;margin-top:5px\">오늘 하루도 최상의 컨디션으로 몰입해 보세요!",
+  storageKey: "penguin_chk_20260812",
   prevStampPoints: 0 
 };
 
@@ -61,7 +61,7 @@ const S = [
   {id:'bfast', sec:'🍽️ 아침 식사 및 출근 준비 (07:15~08:15)', time:'07:15', dur:'30분', cat:'meal',
    title:'🍳 아침 식사',
    items:[
-     '【팩트】 기상 후 정확히 45분 경과. 위장에 부담 없는 최적 타이밍',
+     '【사실】 기상 후 정확히 45분 경과. 위장에 부담 없는 최적 타이밍',
      '천천히 꼭꼭 씹어 먹기',
    ]},
 
@@ -86,7 +86,7 @@ const S = [
    ]},
 
   /* ══ 카페 출근 및 오전 세션 ══ */
-  {id:'transitCafe', sec:'🚶 카페 출근 (08:15~08:40)', time:'08:15', dur:'20분', cat:'transit',
+  {id:'transitCafe', sec:'🚶 카페 출근 (08:15~08:45)', time:'08:15', dur:'20분', cat:'transit',
    title:'🚶 동네 카페로 피서 출근 (편도 20분)',
    items:[
      '【사실】 카페 도보 이동 20분이 아침 식후 산책 15분을 완벽히 대체합니다.',
@@ -94,127 +94,166 @@ const S = [
      '햇빛을 피해 그늘 위주로 걸으며 열기 식히기',
    ]},
 
-  {id:'arriveCafe', time:'08:35', dur:'5분', cat:'sbreak',
+  {id:'arriveCafe', time:'08:35', dur:'10분', cat:'sbreak',
    title:'카페 도착 및 자리 세팅',
    items:[
      '음료 주문 후 자리 정돈 및 와이파이 연결',
    ]},
 
-  {id:'p1', sec:'📚 카페 오전 세션 (08:40~11:20)', time:'08:40', dur:'25분', cat:'study', pomo:1,
+  {id:'p1', sec:'📚 카페 오전 세션 (08:45~12:25)', time:'08:45', dur:'25분', cat:'study', pomo:1,
    title:'뽀모도로 01 — 🎧 제약바이오 영어 워밍업',
    items:[
      '시원한 환경에서 뇌를 영문 기사나 자료 섀도잉으로 깨우기',
    ]},
 
-  {id:'b1', time:'09:05', dur:'5분', cat:'sbreak', title:'짧은 휴식 ①', items:SB},
+  {id:'b1', time:'09:10', dur:'5분', cat:'sbreak', title:'짧은 휴식 ①', items:SB},
 
-  {id:'p2', time:'09:10', dur:'25분', cat:'study', pomo:1,
+  {id:'p2', time:'09:15', dur:'25분', cat:'study', pomo:1,
    title:'뽀모도로 02 — 📰 제약바이오 기사 정독',
    items:[
      '아침에 수집한 기사 메일함 확인 및 트렌드 파악',
    ]},
 
-  {id:'b2', time:'09:35', dur:'5분', cat:'sbreak', title:'짧은 휴식 ②', items:SB},
+  {id:'b2', time:'09:40', dur:'5분', cat:'sbreak', title:'짧은 휴식 ②', items:SB},
 
-  {id:'p3', time:'09:40', dur:'25분', cat:'study', pomo:1,
+  {id:'p3', time:'09:45', dur:'25분', cat:'study', pomo:1,
    title:'뽀모도로 03 — 📖 규제 가이드라인 (규제 1)',
    items:[
      '제약바이오 관련 규제 가이드라인 정독 및 요약 타이핑',
    ]},
 
-  {id:'b3', time:'10:05', dur:'5분', cat:'sbreak', title:'짧은 휴식 ③', items:SB},
+  {id:'b3', time:'10:10', dur:'5분', cat:'sbreak', title:'짧은 휴식 ③', items:SB},
 
-  {id:'p4', time:'10:10', dur:'25분', cat:'study', pomo:1,
+  {id:'p4', time:'10:15', dur:'25분', cat:'study', pomo:1,
    title:'뽀모도로 04 — 📖 규제 가이드라인 (규제 2)',
    items:[
      '규제 가이드라인 심화 학습 진행',
    ]},
 
-  {id:'lb1', time:'10:35', dur:'20분', cat:'lbreak', title:'긴 휴식 ① — 환기 및 눈 휴식', items:[
+  {id:'lb1', time:'10:40', dur:'20분', cat:'lbreak', title:'긴 휴식 ① — 환기 및 눈 휴식', items:[
      '총 4뽀모 완료. 스마트폰과 모니터를 피해 먼 곳 바라보기',
      '화장실을 다녀오거나 스트레칭으로 목과 어깨 풀기',
   ]},
 
-  {id:'p5', time:'10:55', dur:'25분', cat:'study', pomo:1,
+  {id:'p5', time:'11:00', dur:'25분', cat:'study', pomo:1,
    title:'뽀모도로 05 — 💼 이력서/자소서 (자소서 1)',
    items:[
      '지원할 타겟 기업 서류 항목 분석 및 작성',
    ]},
 
-  /* ══ 조기 점심 식사 및 파워냅 ══ */
-  {id:'prepLunch', sec:'🍽️ 점심 식사 및 파워냅 (11:20~13:00)', time:'11:20', dur:'40분', cat:'meal',
-   title:'🥗 점심 식사 (조기 식사)',
+  {id:'b4', time:'11:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ④', items:SB},
+
+  {id:'p6', time:'11:30', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 06 — 💼 이력서/자소서 (자소서 2)',
+   items:[
+     '직무 역량에 맞는 에피소드 다듬기',
+   ]},
+
+  {id:'b5', time:'11:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑤', items:SB},
+
+  {id:'p7', time:'12:00', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 07 — 📖 영어 종합 (영어 1)',
+   items:[
+     '오전 학습 마무리 어학 공부 진행',
+   ]},
+
+  {id:'prepLunch', time:'12:25', dur:'15분', cat:'sbreak', title:'휴식 및 점심 식사 이동', items:[
+     '자리 정돈 및 점심 식사를 위해 짐 챙기거나 주변 식당으로 이동',
+  ]},
+
+  /* ══ 점심 식사 및 파워냅 ══ */
+  {id:'lunch', sec:'🍽️ 점심 식사 및 파워냅 (12:40~14:45)', time:'12:40', dur:'40분', cat:'meal',
+   title:'🥗 점심 식사',
    items:[
      '【주의】 센트룸 철분제 흡수 방해를 막기 위해 우유/치즈 등 칼슘군 피하기',
-     '오후 13:00 온라인 수업 시작 전에 여유 있게 식사를 마치기 위해 조기 식사 진행',
+     '아침 식사 종료(07:45) 후 약 5시간 경과. 오후를 위해 든든히 먹고 소화시키기',
    ]},
 
-  {id:'medLunch', time:'12:00', dur:'5분', cat:'meds',
-   title:'💊 점심 영양제 복용 (화요일: 비타민D 제외)',
+  {id:'medLunch', time:'13:20', dur:'5분', cat:'meds',
+   title:'💊 점심 영양제 복용 (수요일: 비타민D 제외)',
    items:[
      '센트룸 우먼(1정) + 오메가3(1캡슐) 복용',
-     '【주의】 약 복용 전후 2시간(14:00까지) 우유 및 유제품 절대 섭취 금지',
+     '【주의】 약 복용 전후 2시간(15:20까지) 우유 및 유제품 절대 섭취 금지',
    ]},
 
-  {id:'denLunch', time:'12:05', dur:'10분', cat:'dental',
+  {id:'denLunch', time:'13:25', dur:'10분', cat:'dental',
    title:'🦷 식후 양치',
    items:[
      '카페 화장실이나 식당 화장실에서 휴대용 칫솔로 꼼꼼하게 양치',
    ]},
 
-  {id:'walkLunch', time:'12:15', dur:'15분', cat:'health',
+  {id:'walkLunch', time:'13:35', dur:'15분', cat:'health',
    title:'🚶 점심 식후 산책',
    items:[
-     '15분간 주변 그늘을 가볍게 걸으며 소화 및 혈당 관리',
+     '15분간 주변을 걸으며 산소 공급 및 혈당 관리 (그늘 위주로 걷기)',
    ]},
 
-  {id:'nap', time:'12:30', dur:'30분', cat:'special',
-   title:'🧠 NASA 파워냅 & NSDR (강의 시작 전 뇌 최적화)',
+  {id:'p8', time:'13:50', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 08 — 📖 영어 종합 (영어 2)',
    items:[
-     '13:00 정각 강의 시작에 맞추어 알람 30분 설정 후 깊은 수면/휴식 유도',
+     '식곤증이 몰려오기 전 가벼운 영작문이나 섀도잉으로 뇌 자극',
    ]},
 
-  /* ══ AI 신약개발 온라인 강의 수강 세션 ══ */
-  {id:'p6', sec:'💻 AI 신약개발 온라인 강의 (13:00~17:00)', time:'13:00', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 06 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b4', time:'13:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑤', items:SB},
-  
-  {id:'p7', time:'13:30', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 07 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b5', time:'13:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑥', items:SB},
-  
-  {id:'p8', time:'14:00', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 08 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b6', time:'14:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑦', items:SB},
-  
-  {id:'p9', time:'14:30', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 09 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b7', time:'14:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑧', items:SB},
-  
-  {id:'p10', time:'15:00', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 10 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b8', time:'15:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑨', items:SB},
-  
-  {id:'p11', time:'15:30', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 11 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b9', time:'15:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑩', items:SB},
-  
-  {id:'p12', time:'16:00', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 12 — 💻 AI 신약개발 강의 수강', items:['실시간 온라인 강의 집중 수강']},
-  {id:'b10', time:'16:25', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑪', items:SB},
-  
-  {id:'p13', time:'16:30', dur:'25분', cat:'study', pomo:1, title:'뽀모도로 13 — 💻 AI 신약개발 강의 수강', items:['온라인 실시간 강의 최종 마무리 및 종료']},
+  {id:'nap', time:'14:15', dur:'30분', cat:'special',
+   title:'🧠 NASA 파워냅 & NSDR (식후 55분 경과)',
+   items:[
+     '엎드릴 수 있는 공간에서 알람 30분 설정',
+     '눈을 가리고 깊은 수면/휴식 유도 (수면 26분 타겟)',
+   ]},
 
-  /* ══ 귀가 및 저녁 루틴 ══ */
-  {id:'transitHome', sec:'🍽️ 귀가 및 저녁 루틴 (16:55~19:20)', time:'16:55', dur:'25분', cat:'transit',
-   title:'🚶 자택으로 귀가 (강의 정리 후 즉시 귀가)',
+  /* ══ 카페 오후 세션 ══ */
+  {id:'p9', sec:'📚 카페 오후 세션 (14:45~17:25)', time:'14:45', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 09 — 💼 이력서/자소서 (자소서 3)',
+   items:[
+     '파워냅 직후 가볍게 뇌를 깨우며 자소서 문항 수정/보완',
+   ]},
+
+  {id:'b6', time:'15:10', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑥', items:SB},
+
+  {id:'p10', time:'15:15', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 10 — 💼 이력서/자소서 (자소서 4)',
+   items:[
+     '기업 IR 자료 분석을 통한 지원동기 고도화',
+   ]},
+
+  {id:'b7', time:'15:40', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑦', items:SB},
+
+  {id:'p11', time:'15:45', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 11 — 📖 규제 가이드라인 (규제 3)',
+   items:[
+     '규제 가이드라인 중요 항목 암기 및 백지 복습',
+   ]},
+
+  {id:'lb2', time:'16:10', dur:'20분', cat:'lbreak', title:'긴 휴식 ② — 바깥바람 노출', items:[
+     '오후 4뽀모 완료. 매장 밖 벤치 등에서 시야 넓게 두고 완벽한 무인지 휴식',
+     '허리 및 하체 스트레칭',
+  ]},
+
+  {id:'p12', time:'16:30', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 12 — 📖 규제 가이드라인 (규제 4)',
+   items:[
+     '가이드라인 요약본 마무리',
+   ]},
+
+  {id:'b8', time:'16:55', dur:'5분', cat:'sbreak', title:'짧은 휴식 ⑧', items:SB},
+
+  {id:'p13', time:'17:00', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 13 — 📖 영어 종합 (영어 3)',
+   items:[
+     '오늘 카페 세션 마무리 및 정리',
+   ]},
+
+  /* ══ 귀가 및 저녁 식사 ══ */
+  {id:'transitHome', sec:'🍽️ 귀가 및 저녁 루틴 (17:25~19:20)', time:'17:25', dur:'20분', cat:'transit',
+   title:'🚶 자택으로 귀가',
    items:[
      '짐 정리 후 귀가 이동 (도보 20분)',
    ]},
 
-  {id:'oatmeal', time:'17:20', dur:'5분', cat:'special',
+  {id:'oatmeal', time:'17:45', dur:'5분', cat:'special',
    title:'🥣 내일 아침용 오버나이트 오트밀 제조',
    items:[
      '복귀 즉시 바로 오트밀을 제조해 냉장고에 보관',
-   ]},
-
-  {id:'p14', time:'17:25', dur:'25분', cat:'study', pomo:1,
-   title:'뽀모도로 14 — 📚 자유 복습 / 정리',
-   items:[
-     '자택에서 오늘 배운 AI 신약개발 내용 가볍게 복습 정리',
    ]},
 
   {id:'dinner', time:'17:50', dur:'40분', cat:'meal',
@@ -225,9 +264,11 @@ const S = [
    ]},
 
   {id:'medPm', time:'18:30', dur:'5분', cat:'meds',
-   title:'💊 저녁 약 복용',
+   title:'💊 저녁 약 복용 (신규 칼/마/D/K 복합 영양제 추가)',
    items:[
-     '식후 탈모 약 (마이녹실 S캡슐) 복용',
+     '탈모 약 (마이녹실 S캡슐) 복용',
+     '신규 칼슘, 마그네슘, 비타민 D/K 복합 영양제 복용',
+     '【주의】 마그네슘 수면 시너지 극대화 및 철분 흡수 장애 방지를 위해 전후 2시간(20:30까지) 우유 및 유제품 절대 섭취 금지',
    ]},
 
   {id:'denPmHeavy', time:'18:35', dur:'30분', cat:'dental',
@@ -243,13 +284,13 @@ const S = [
    ]},
 
   /* ══ 자택 오후 세션 & 자투리 ══ */
-  {id:'p15', sec:'📚 자택 마무리 세션 (19:20~21:00)', time:'19:20', dur:'25분', cat:'study', pomo:1,
-   title:'뽀모도로 15 — 📚 오늘 공부 최종 마무리',
+  {id:'p14', sec:'📚 자택 마무리 세션 (19:20~19:45)', time:'19:20', dur:'25분', cat:'study', pomo:1,
+   title:'뽀모도로 14 — 📚 자유 학습 / 복습',
    items:[
-     '오늘 배운 핵심 내용 자율 복습 및 정리',
+     '자택에서 오늘 하루 공부한 내용 총정리 및 내일 타겟 확인',
    ]},
 
-  {id:'zaturi', time:'19:45', dur:'15분', cat:'transit',
+  {id:'zaturi', sec:'🎮 휴식 및 보상 (19:45~21:00)', time:'19:45', dur:'15분', cat:'transit',
    title:'⏱️ 일일 자투리 모음 블록',
    items:[
      '설명: 뽀모를 넣기엔 너무 적어 (25분 미만) 애매한 시간의 블록입니다.',
@@ -259,8 +300,8 @@ const S = [
   {id:'control', time:'20:00', dur:'60분', cat:'reserve',
    title:'⚖️ 확실한 보상과 자유 시간',
    items:[
-     '하루 15뽀모도로를 완주한 스스로를 위한 합법적 1시간 무료 오락',
-     '유튜브, 게임 등 자유롭게 쾌적하게 즐기기',
+     '하루 14뽀모도로를 완주한 스스로를 위한 합법적 1시간 무료 오락',
+     '유튜브, 게임, 소설 등 죄책감 없이 쾌적하게 즐기기',
    ]},
 
   /* ══ 취침 루틴 ══ */
@@ -330,7 +371,7 @@ const S = [
 ];
 
 const Preview = [
-  {d:'8/11 (화)', today:true, t:'💻 AI 신약개발 따라잡기 (온라인 13:00~17:00)'},
+  {d:'8/12 (수)', today:true, t:'☕ 카페 피서 출근 & 💊 신규 칼/마/D/K 복합제 첫 복용'},
   {d:'8/14 (금)', t:'💻 ELISA 대면 특강 (09:00~13:00) & 🗣️ 마지막 CBT (15:00) & 🏥 교정치과 (17:00)'},
   {d:'8/15 (토)', t:'🇰🇷 광복절 (도서관 휴관)'},
   {d:'8/17 (월)', t:'🇰🇷 대체공휴일 (도서관 휴관)'},
