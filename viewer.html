@@ -63,6 +63,54 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   padding: 12px 10px 60px;
 }
 
+/* ── 원클릭 복제 & 내비게이션 바 CSS ── */
+.clone-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.btn-home {
+  margin-right: auto;
+  background: #FAFAF7;
+  color: #3A3222;
+  border: 1.5px solid #D0CCC4;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.btn-home:hover { border-color: #4A7040; color: #2A6030; }
+.btn-token {
+  background: #E8E4DC;
+  color: #555;
+  border: 1.5px solid #C8C2B8;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-token:hover { background: #DDD8CE; }
+.btn-clone {
+  background: #2A6EA0;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+  transition: 0.2s;
+}
+.btn-clone:hover { background: #225A84; }
+.btn-clone:disabled { opacity: 0.6; cursor: wait; }
+
 /* ── 도장판 UI CSS ── */
 .stamp-wrap { background:#FFF8EC; border:2px solid #E0B080; border-radius:11px; padding:12px; margin-bottom:12px; }
 .stamp-ttl { font-size:12px; font-weight:700; color:#A04020; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
@@ -240,7 +288,7 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
 
 <script>
 // =========================================================================
-// ★ [Firebase] 설정 영역 ★
+// ★ [Firebase & GitHub] 설정 영역 ★
 // =========================================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDWboFWcolJUbnuq0Vl-piK14_ebWpFXVU",
@@ -252,6 +300,12 @@ const FIREBASE_CONFIG = {
   appId: "1:68169760536:web:d76711360a22d2f8ffe86d"
 };
 
+const GITHUB_REPO_INFO = {
+  owner: "tlfvmsp0-rgb",
+  repo:  "penguin_schedule"
+};
+const TOKEN_STORAGE_KEY = "penguin_gh_pat";
+
 // ── 카테고리 색상표 ──
 const C = {
   special:{ bg:'#FFF4EC', bd:'#D06020', dot:'#C05010', lbl:'⚠️ 특별',       tc:'#C05010' },
@@ -261,11 +315,11 @@ const C = {
   dental: { bg:'#EBF5FC', bd:'#4A9EC8', dot:'#2A80B0', lbl:'🦷 구강 관리',   tc:'#2A80B0' },
   health: { bg:'#FEF0F2', bd:'#C84050', dot:'#A02838', lbl:'🏃 운동·건강',   tc:'#A02838' },
   study:  { bg:'#EDF4EC', bd:'#4A7040', dot:'#385830', lbl:'🍅 뽀모도로',    tc:'#385830' },
-  transit:{ bg:'#F3F4F8', bd:'#7A84A8', dot:'#5A6488', lbl:'🚌 자투리',      tc:'#5A6488' },
+  transit:{ bg:'#F3F4F8', bd:'#7A84A8', dot:'#5A6488', lbl:'🚌 이동·기타',   tc:'#5A6488' },
   sbreak: { bg:'#F4F8F4', bd:'#80B880', dot:'#60A060', lbl:'짧은 휴식',      tc:'#60A060' },
   lbreak: { bg:'#EEF5EE', bd:'#60A060', dot:'#408048', lbl:'긴 휴식',        tc:'#408048' },
   night:  { bg:'#EEF1F8', bd:'#3A4878', dot:'#283568', lbl:'🌙 취침 루틴',   tc:'#283568' },
-  reserve:{ bg:'#FFF8EC', bd:'#C89040', dot:'#A07020', lbl:'🆘 초과/보너스',  tc:'#A07020' },
+  reserve:{ bg:'#FFF8EC', bd:'#C89040', dot:'#A07020', lbl:'🆘 보상/여유',   tc:'#A07020' },
   notes:  { bg:'#FBF6EB', bd:'#A88040', dot:'#887030', lbl:'📌 유의사항',    tc:'#887030' },
 };
 
@@ -386,6 +440,222 @@ async function initApp() {
 
   } catch(e) {
     updateSyncStatus('offline');
+  }
+}
+
+// =========================================================================
+// ★ 원클릭 내일 일정 자동 복제 & GitHub 업로드 엔진 ★
+// =========================================================================
+const DOW_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function configureGitHubToken() {
+  const cur = localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+  const msg = cur
+    ? '현재 GitHub 토큰이 등록되어 있습니다.\n새 토큰으로 변경하려면 입력하고, 삭제하려면 빈칸으로 확인을 누르세요.'
+    : '깃허브 자동 업로드를 위해 Personal Access Token(PAT)을 입력하세요.\n(브라우저 로컬에만 안전하게 저장되며 깃허브로 전송되지 않습니다.)';
+  const input = prompt(msg, cur);
+  if (input === null) return null;
+  const trimmed = input.trim();
+  if (trimmed === '') {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    alert('GitHub 토큰이 삭제되었습니다.');
+    return null;
+  }
+  localStorage.setItem(TOKEN_STORAGE_KEY, trimmed);
+  alert('✅ GitHub 토큰이 저장되었습니다!');
+  return trimmed;
+}
+
+function updateDDayText(text, nextDate) {
+  if (!text) return text;
+  return text.replace(/(^|[\s(\[【])(D-(\d+)|D-Day|D\+(\d+))(?=$|[\s)\]】,.!?])/gi, (full, prefix, token, minusNum, plusNum) => {
+    if (/^D-Day$/i.test(token)) return prefix + 'D+1';
+    if (minusNum !== undefined) {
+      const n = parseInt(minusNum, 10) - 1;
+      return prefix + (n <= 0 ? 'D-Day' : `D-${n}`);
+    }
+    if (plusNum !== undefined) {
+      const n = parseInt(plusNum, 10) + 1;
+      return prefix + `D+${n}`;
+    }
+    return full;
+  });
+}
+
+function updateCheatMealText(text, nextDate) {
+  if (!text) return text;
+  return text.replace(/\[⚖️\s*보유:\s*(\d+)kcal\s*\|\s*([^\]]+)\]/g, (_, kcalStr, coolStr) => {
+    let kcal = parseInt(kcalStr, 10) || 0;
+    if (nextDate.getDay() === 1) {
+      kcal = Math.min(900, kcal + 450);
+    }
+    let newCool = coolStr.trim();
+    const cdMatch = newCool.match(/~(\d{1,2})\/(\d{1,2})\s*금지/);
+    if (cdMatch) {
+      const cdM = parseInt(cdMatch[1], 10);
+      const cdD = parseInt(cdMatch[2], 10);
+      let cdYear = nextDate.getFullYear();
+      if (nextDate.getMonth() === 0 && cdM === 12) cdYear--;
+      else if (nextDate.getMonth() === 11 && cdM === 1) cdYear++;
+      const cdEnd = new Date(cdYear, cdM - 1, cdD);
+      if (nextDate.getTime() > cdEnd.getTime()) {
+        newCool = kcal > 0 ? '⏳ 쿨타임 해제 (사용 가능)' : '⏳ 쿨타임 해제';
+      }
+    } else if (/쿨타임 해제/.test(newCool)) {
+      newCool = kcal > 0 ? '⏳ 쿨타임 해제 (사용 가능)' : '⏳ 쿨타임 해제';
+    }
+    return `[⚖️ 보유: ${kcal}kcal | ${newCool}]`;
+  });
+}
+
+async function cloneToTomorrow() {
+  if (!dateParam || !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+    alert('⚠️ 현재 페이지의 날짜 정보(YYYY-MM-DD)를 읽을 수 없습니다.');
+    return;
+  }
+
+  let token = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!token) {
+    token = configureGitHubToken();
+    if (!token) return;
+  }
+
+  const [y, m, d] = dateParam.split('-').map(Number);
+  const nextDate = new Date(y, m - 1, d + 1);
+  const ny = nextDate.getFullYear();
+  const nm = String(nextDate.getMonth() + 1).padStart(2, '0');
+  const nd = String(nextDate.getDate()).padStart(2, '0');
+  const nextDow = DOW_KO[nextDate.getDay()];
+  const nextDateStr = `${ny}-${nm}-${nd}`;
+  const nextDotDate = `${ny}.${nm}.${nd} ${nextDow}요일`;
+  const nextShortDate = `${nextDate.getMonth() + 1}/${nextDate.getDate()}`;
+  const nextFileName = `${nextDateStr}.js`;
+
+  // 내일이 월요일인데 현재 일정이 본진 도서관 기준이면 경고
+  const usesMainLib = JSON.stringify(S).includes('본진 도서관') || (DailyConfig.alert1HTML && DailyConfig.alert1HTML.includes('본진 도서관'));
+  if (nextDate.getDay() === 1 && usesMainLib) {
+    if (!confirm(`⚠️ 내일(${nextShortDate} 월요일)은 본진 도서관 정기 휴관일입니다.\n그래도 오늘 일정 그대로 내일 파일을 생성할까요?`)) {
+      return;
+    }
+  } else {
+    if (!confirm(`오늘 일정을 기반으로 내일(${nextDotDate}) 일정 파일 [${nextFileName}]을 깃허브에 자동 생성할까요?`)) {
+      return;
+    }
+  }
+
+  const btn = document.getElementById('btnCloneTomorrow');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 깃허브 업로드 중...'; }
+
+  try {
+    // 1. 데이터 깊은 복사 및 날짜/D-Day/치팅밀 갱신
+    const nextConfig = JSON.parse(JSON.stringify(DailyConfig));
+    nextConfig.storageKey = `penguin_chk_${ny}${nm}${nd}`;
+    nextConfig.prevStampPoints = 0;
+
+    if (/^\d{4}\.\d{2}\.\d{2}\s*[월화수목금토일]요일/.test(nextConfig.dateLabel)) {
+      nextConfig.dateLabel = nextConfig.dateLabel.replace(/^\d{4}\.\d{2}\.\d{2}\s*[월화수목금토일]요일/, nextDotDate);
+    } else {
+      nextConfig.dateLabel = `${nextDotDate} ${nextConfig.dateLabel}`;
+    }
+    nextConfig.dateLabel = updateCheatMealText(nextConfig.dateLabel, nextDate);
+    nextConfig.alert1HTML = updateDDayText(nextConfig.alert1HTML, nextDate);
+    nextConfig.alert2HTML = updateDDayText(nextConfig.alert2HTML, nextDate);
+
+    const nextS = JSON.parse(JSON.stringify(S));
+    nextS.forEach(blk => {
+      if (blk.cat === 'notes' && Array.isArray(blk.items)) {
+        blk.items = blk.items.map(it => updateCheatMealText(it, nextDate));
+      }
+    });
+
+    const rawPreview = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
+    const nextPreview = JSON.parse(JSON.stringify(rawPreview));
+    const matchNextRegex = new RegExp('^' + nextShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
+
+    nextPreview.forEach(w => {
+      delete w.today;
+      if (w.d && matchNextRegex.test(w.d.trim())) {
+        w.today = true;
+      }
+      if (w.targetDate && /^\d{4}-\d{2}-\d{2}$/.test(w.targetDate)) {
+        const [ty, tm, td] = w.targetDate.split('-').map(Number);
+        const tDate = new Date(ty, tm - 1, td);
+        const diff = Math.round((tDate.getTime() - nextDate.getTime()) / 86400000);
+        const dTag = diff === 0 ? 'D-Day' : (diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`);
+        if (/D-\d+|D-Day|D\+\d+/i.test(w.t)) {
+          w.t = w.t.replace(/D-\d+|D-Day|D\+\d+/gi, dTag);
+        } else {
+          w.t = `${w.t} (${dTag})`;
+        }
+      } else {
+        w.t = updateDDayText(w.t, nextDate);
+      }
+    });
+
+    // 2. JS 파일 문자열 직렬화
+    const fileContent =
+`// Auto-cloned from ${dateParam} by viewer.html
+const DailyConfig = ${JSON.stringify(nextConfig, null, 2)};
+
+const S = ${JSON.stringify(nextS, null, 2)};
+
+const Preview = ${JSON.stringify(nextPreview, null, 2)};
+`;
+
+    // 3. GitHub API로 기존 파일 존재 여부 확인 (sha 확보)
+    const apiUrl = `https://api.github.com/repos/${GITHUB_REPO_INFO.owner}/${GITHUB_REPO_INFO.repo}/contents/${nextFileName}`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    let existingSha = null;
+    const checkRes = await fetch(apiUrl, { headers });
+    if (checkRes.status === 200) {
+      const checkData = await checkRes.json();
+      existingSha = checkData.sha;
+      if (!confirm(`⚠️ 깃허브에 이미 [${nextFileName}] 파일이 존재합니다.\n기존 일정을 덮어쓸까요?`)) {
+        if (btn) { btn.disabled = false; btn.textContent = '➕ 내일 일정으로 복제'; }
+        return;
+      }
+    } else if (checkRes.status === 401 || checkRes.status === 403) {
+      throw new Error('GitHub 토큰 인증에 실패했습니다. [⚙️ 토큰 설정]에서 토큰과 권한(Contents: Read & Write)을 확인하세요.');
+    } else if (checkRes.status !== 404) {
+      throw new Error(`파일 확인 실패 (HTTP ${checkRes.status})`);
+    }
+
+    // 4. GitHub PUT 커밋 실행
+    const body = {
+      message: `Auto-clone schedule: ${nextFileName} (from ${dateParam})`,
+      content: utf8ToBase64(fileContent)
+    };
+    if (existingSha) body.sha = existingSha;
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!putRes.ok) {
+      const errJson = await putRes.json().catch(() => ({}));
+      throw new Error(errJson.message || `업로드 실패 (HTTP ${putRes.status})`);
+    }
+
+    alert(`✅ 내일 일정 [${nextFileName}]이 깃허브에 업로드되었습니다!\n\n※ GitHub Pages에 새 파일이 반영되기까지 약 30초~1분 정도 걸릴 수 있습니다.`);
+
+  } catch (err) {
+    alert('❌ 오류 발생:\n' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '➕ 내일 일정으로 복제'; }
   }
 }
 
@@ -552,6 +822,18 @@ function render(){
 
   const root = document.getElementById('content'); root.innerHTML = '';
   let lastSec = '';
+
+  // ── 📋 상단 유틸리티 & 내일 복제 바 ──
+  const cloneBar = document.createElement('div');
+  cloneBar.className = 'clone-bar';
+  cloneBar.innerHTML = `
+    <a class="btn-home" href="index.html">📋 전체 목록</a>
+    <button type="button" class="btn-token" id="btnGhToken">⚙️ 토큰 설정</button>
+    <button type="button" class="btn-clone" id="btnCloneTomorrow">➕ 내일 일정으로 복제</button>
+  `;
+  root.appendChild(cloneBar);
+  cloneBar.querySelector('#btnGhToken').addEventListener('click', configureGitHubToken);
+  cloneBar.querySelector('#btnCloneTomorrow').addEventListener('click', cloneToTomorrow);
 
   if(DailyConfig.alert1HTML) {
     const al = document.createElement('div'); al.className = 'alert';
