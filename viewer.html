@@ -38,7 +38,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 .hdr-r{text-align:right;flex-shrink:0;position:relative;}
 .pct-big{font-size:30px;font-weight:700;color:#7EC8A0;line-height:1;transition:all 0.3s ease;}
-.pct-sub{font-size:10px;opacity:.55;margin-top:2px}
+.pct-sub{font-size:10px;opacity:.7;margin-top:3px}
 .pbar-wrap{height:5px;background:rgba(255,255,255,.12);border-radius:3px;margin-bottom:8px;overflow:hidden;}
 .pbar-fill{height:100%;background:#7EC8A0;border-radius:3px;transition:width .3s ease}
 .chips{display:flex;gap:7px;flex-wrap:wrap}
@@ -128,6 +128,20 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   #memo-input { height: 150px; }
 }
 
+/* 🌟 블록 하단 설명란(휴식 가이드/목표) CSS 🌟 */
+.blk-desc {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border-left: 3px solid rgba(56, 88, 48, 0.45);
+  border-radius: 6px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #3A3222;
+}
+.blk-desc-line { margin-bottom: 3px; }
+.blk-desc-line:last-child { margin-bottom: 0; font-weight: 600; color: #2A5030; }
+
 .pomo-memo { width: 100%; border: none; border-top: 1px dashed rgba(0,0,0,0.15); background: transparent; padding: 7px 0 0 0; margin-top: 7px; font-size: 12px; color: #2A2010; outline: none; font-family: inherit; }
 .pomo-memo::placeholder { color: #A09888; font-style: italic; }
 
@@ -202,7 +216,7 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
   <div class="chips">
     <div class="chip">🍅 완료: <b id="cPomo">0/0</b></div>
     <div class="chip">⏱️ 순공: <b id="cStudy">0h 0m</b></div>
-    <div class="chip">✅ 전체: <b id="cAll">0/0</b></div>
+    <div class="chip">✅ <span id="cAllLbl">전체</span>: <b id="cAll">0/0</b></div>
     <div class="chip"><b id="sync-status" style="color:#7EC8A0;">⏳ 연결 중...</b></div>
   </div>
 </div>
@@ -379,23 +393,32 @@ const NO_CB = new Set(['notes']);
 const RSV_IDS = new Set(['rsv_pomo', 'transit']);
 
 function updateStats(){
-  let reqTotal = 0, reqDone = 0, rsvTotal = 0, rsvDone = 0;
+  const isWeightedMode = typeof DailyConfig !== 'undefined' && DailyConfig.targetPomo !== undefined;
+  let routineTotal = 0, routineDone = 0;
+  let rsvTotal = 0, rsvDone = 0;
   let reqPomoTotal = 0, reqPomoDone = 0, rsvPomoDone = 0;
+  let unifiedPomoDone = 0;
 
   S.forEach(b => {
     const isRsv = RSV_IDS.has(b.id) || b.cat === 'reserve';
+    const isUnified = b.pomo === 'unified';
     let bAll = b.items.length > 0;
-    let bonusCheckedCount = 0; 
+    let checkedCount = 0; 
     
     b.items.forEach((_, i) => {
       const iid = b.id + '-' + i;
       if (!NO_CB.has(b.cat)) {
-        if(isRsv) rsvTotal++; else reqTotal++;
-        if (chk[iid]) {
-          if (isRsv) rsvDone++; else reqDone++;
-          bonusCheckedCount++; 
+        if (isUnified) {
+          if (chk[iid]) checkedCount++;
+          else bAll = false;
+        } else if (isRsv) {
+          rsvTotal++;
+          if (chk[iid]) { rsvDone++; checkedCount++; }
+          else bAll = false;
         } else {
-          bAll = false;
+          routineTotal++;
+          if (chk[iid]) { routineDone++; checkedCount++; }
+          else bAll = false;
         }
       } else {
         bAll = false;
@@ -403,8 +426,10 @@ function updateStats(){
     });
     
     if (b.pomo !== undefined) {
-      if (b.pomo === 'bonus') {
-        rsvPomoDone += bonusCheckedCount;
+      if (b.pomo === 'unified') {
+        unifiedPomoDone += checkedCount;
+      } else if (b.pomo === 'bonus') {
+        rsvPomoDone += checkedCount;
       } else {
         reqPomoTotal++;
         if (bAll) reqPomoDone++;
@@ -412,32 +437,84 @@ function updateStats(){
     }
   });
 
-  const totalItemsDone = reqDone + rsvDone;
-  const pct = reqTotal > 0 ? Math.round((totalItemsDone / reqTotal) * 100) : 0;
-  
   const pPctEl = document.getElementById('pPct');
-  if(pct > 100) {
-     pPctEl.innerHTML = `${pct}% <span class="over-badge">🌟초과달성!</span>`;
-     pPctEl.style.color = '#FFD700'; 
+  const pSubEl = document.getElementById('pSub');
+  const cAllLblEl = document.getElementById('cAllLbl');
+
+  if (isWeightedMode) {
+    const targetPomo = Number(DailyConfig.targetPomo) || 0;
+    const routineRatio = routineTotal > 0 ? (routineDone / routineTotal) : 1;
+    let rShare = 0, pShare = 0, pctRaw = 0;
+
+    if (targetPomo > 0) {
+      rShare = routineRatio * 30;
+      pShare = (unifiedPomoDone / targetPomo) * 70;
+      pctRaw = rShare + pShare;
+    } else {
+      rShare = routineRatio * 100;
+      pctRaw = rShare;
+    }
+
+    const pct = Math.round(pctRaw);
+    if (pct > 100) {
+      pPctEl.innerHTML = `${pct}% <span class="over-badge">🌟초과달성!</span>`;
+      pPctEl.style.color = '#FFD700';
+    } else {
+      pPctEl.textContent = pct + '%';
+      pPctEl.style.color = '#7EC8A0';
+    }
+
+    if (targetPomo > 0) {
+      pSubEl.textContent = `일상 ${rShare.toFixed(1)}% + 뽀모 ${pShare.toFixed(1)}%`;
+    } else {
+      pSubEl.textContent = `일상 ${routineDone} / ${routineTotal}`;
+    }
+
+    document.getElementById('pFill').style.width = Math.min(pct, 100) + '%';
+    const m = unifiedPomoDone * 25;
+    document.getElementById('cPomo').textContent = unifiedPomoDone + '/' + targetPomo;
+    document.getElementById('cStudy').textContent = Math.floor(m/60) + 'h ' + (m%60) + 'm';
+    if (cAllLblEl) cAllLblEl.textContent = '루틴';
+    document.getElementById('cAll').textContent = routineDone + '/' + routineTotal;
   } else {
-     pPctEl.textContent = pct + '%';
-     pPctEl.style.color = '#7EC8A0';
+    // 구버전(.js) 하위 호환 유지
+    const totalItemsDone = routineDone + rsvDone;
+    const pct = routineTotal > 0 ? Math.round((totalItemsDone / routineTotal) * 100) : 0;
+    
+    if(pct > 100) {
+       pPctEl.innerHTML = `${pct}% <span class="over-badge">🌟초과달성!</span>`;
+       pPctEl.style.color = '#FFD700'; 
+    } else {
+       pPctEl.textContent = pct + '%';
+       pPctEl.style.color = '#7EC8A0';
+    }
+    
+    pSubEl.textContent = totalItemsDone + ' / ' + routineTotal;
+    document.getElementById('pFill').style.width = Math.min(pct, 100) + '%';
+    
+    const totalPomoDone = reqPomoDone + rsvPomoDone;
+    const m = totalPomoDone * 25;
+    document.getElementById('cPomo').textContent = totalPomoDone + '/' + reqPomoTotal;
+    document.getElementById('cStudy').textContent = Math.floor(m/60) + 'h ' + (m%60) + 'm';
+    if (cAllLblEl) cAllLblEl.textContent = '전체';
+    document.getElementById('cAll').textContent = totalItemsDone + '/' + routineTotal;
   }
-  
-  document.getElementById('pSub').textContent = totalItemsDone + ' / ' + reqTotal;
-  document.getElementById('pFill').style.width = Math.min(pct, 100) + '%';
-  
-  const totalPomoDone = reqPomoDone + rsvPomoDone;
-  const m = totalPomoDone * 25;
-  document.getElementById('cPomo').textContent = totalPomoDone + '/' + reqPomoTotal;
-  document.getElementById('cStudy').textContent = Math.floor(m/60) + 'h ' + (m%60) + 'm';
-  document.getElementById('cAll').textContent = totalItemsDone + '/' + reqTotal;
 }
 
 function checkBlockDone(b){
   if (NO_CB.has(b.cat)) return;
-  const all = b.items.every((_, i) => chk[b.id + '-' + i]);
   const el = document.getElementById('bl-' + b.id), dm = document.getElementById('dm-' + b.id);
+
+  if (b.pomo === 'unified') {
+    const target = (typeof DailyConfig !== 'undefined' && DailyConfig.targetPomo !== undefined) ? Number(DailyConfig.targetPomo) : b.items.length;
+    const doneCnt = b.items.filter((_, i) => chk[b.id + '-' + i]).length;
+    if (dm) dm.style.display = (target > 0 && doneCnt >= target) ? 'inline' : 'none';
+    if (doneCnt === b.items.length) el?.classList.add('all-done');
+    else el?.classList.remove('all-done');
+    return;
+  }
+
+  const all = b.items.every((_, i) => chk[b.id + '-' + i]);
   if (all){ el?.classList.add('all-done'); if(dm) dm.style.display = 'inline'; }
   else { el?.classList.remove('all-done'); if(dm) dm.style.display = 'none'; }
 }
@@ -532,9 +609,7 @@ function render(){
   });
   stampBox.querySelector('#btnStampUndo').addEventListener('click', () => { chk['stamp_points_today'] = (chk['stamp_points_today'] || 0) - 1; saveState(); updateStampUI(); });
 
-  let lastBlock;
   S.forEach(b => {
-    lastBlock = b;
     const cs = C[b.cat] || C.notes; const nc = NO_CB.has(b.cat);
     if (b.sec && b.sec !== lastSec){
       const sl = document.createElement('div'); sl.className = 'sec'; sl.textContent = b.sec;
@@ -544,7 +619,7 @@ function render(){
     let hdrHTML = `<div class="blk-hdr" style="background:${cs.dot}12;border-bottom-color:${cs.bd}30"><div class="dot" style="background:${cs.dot}"></div>`;
     if(b.time) hdrHTML += `<span class="btime" style="color:${cs.dot}">${b.time}</span>`;
     hdrHTML += `<span class="bcat" style="background:${cs.dot}22;color:${cs.dot}">${cs.lbl}</span>`;
-    if(!nc) hdrHTML += `<span class="btn-check-all" id="all-${b.id}" style="color:${cs.dot}">ALL</span>`;
+    if(!nc && b.pomo !== 'unified' && b.pomo !== 'bonus') hdrHTML += `<span class="btn-check-all" id="all-${b.id}" style="color:${cs.dot}">ALL</span>`;
     hdrHTML += `<span class="btitle">${b.title}</span>`;
     if(b.dur) hdrHTML += `<span class="bdur" style="background:${cs.dot}18;color:${cs.dot}">${b.dur}</span>`;
     hdrHTML += `<span class="done-mark" id="dm-${b.id}">✅</span></div>`;
@@ -579,6 +654,19 @@ function render(){
       if (chk[iid]) tx.classList.add('done'); row.appendChild(tx); body.appendChild(row);
     });
 
+    if (b.desc) {
+      const descBox = document.createElement('div');
+      descBox.className = 'blk-desc';
+      const lines = Array.isArray(b.desc) ? b.desc : [b.desc];
+      lines.forEach(line => {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'blk-desc-line';
+        lineEl.textContent = line;
+        descBox.appendChild(lineEl);
+      });
+      body.appendChild(descBox);
+    }
+
     if(b.pomo !== undefined || b.cat === 'reserve') {
         const pmId = 'pmemo-' + b.id;
         const pmInput = document.createElement('input');
@@ -592,6 +680,7 @@ function render(){
     }
 
     wrap.appendChild(body); root.appendChild(wrap);
+    checkBlockDone(b);
   });
 
   // ── [일정 미리보기] 최적화 렌더링 ──
@@ -610,7 +699,7 @@ function render(){
   ft.innerHTML = `<div style="font-size:20px;margin-bottom:6px">🔥</div><div style="font-size:14px;font-weight:700;font-family:'DM Serif Display',serif">${DailyConfig.footerQuote}</div>`;
   root.appendChild(ft);
   
-  if(lastBlock) checkBlockDone(lastBlock); updateStats(); updateStampUI();
+  updateStats(); updateStampUI();
 }
 
 initApp();
