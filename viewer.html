@@ -473,7 +473,7 @@ function configureGitHubToken() {
   return trimmed;
 }
 
-function updateDDayText(text, nextDate) {
+function updateDDayText(text) {
   if (!text) return text;
   return text.replace(/(^|[\s(\[【])(D-(\d+)|D-Day|D\+(\d+))(?=$|[\s)\]】,.!?])/gi, (full, prefix, token, minusNum, plusNum) => {
     if (/^D-Day$/i.test(token)) return prefix + 'D+1';
@@ -486,6 +486,37 @@ function updateDDayText(text, nextDate) {
       return prefix + `D+${n}`;
     }
     return full;
+  });
+}
+
+function detectMaxPeriodDay() {
+  let maxD = 0;
+  const rawPrev = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
+  const sources = [
+    DailyConfig.badge1, DailyConfig.badge2, DailyConfig.alert1HTML, DailyConfig.alert2HTML,
+    ...rawPrev.map(w => w.t)
+  ];
+  sources.forEach(s => {
+    if (!s) return;
+    const matches = s.match(/생리\s*(\d+)일차/g);
+    if (matches) {
+      matches.forEach(tok => {
+        const n = parseInt(tok.match(/\d+/)[0], 10);
+        if (n > maxD) maxD = n;
+      });
+    }
+  });
+  return maxD;
+}
+
+function updateMenstruationText(text, endPeriod) {
+  if (!text) return text;
+  if (endPeriod) {
+    return text.replace(/생리\s*(\d+)일차/g, '생리 종료(회복기)');
+  }
+  return text.replace(/생리\s*(\d+)일차/g, (_, numStr) => {
+    const nextDay = parseInt(numStr, 10) + 1;
+    return `생리 ${nextDay}일차`;
   });
 }
 
@@ -528,6 +559,7 @@ async function cloneToTomorrow() {
   }
 
   const [y, m, d] = dateParam.split('-').map(Number);
+  const curShortDate = `${m}/${d}`;
   const nextDate = new Date(y, m - 1, d + 1);
   const ny = nextDate.getFullYear();
   const nm = String(nextDate.getMonth() + 1).padStart(2, '0');
@@ -550,11 +582,18 @@ async function cloneToTomorrow() {
     }
   }
 
+  // 생리 6일차 이상일 경우 종료 처리 여부 확인
+  const curPeriodDay = detectMaxPeriodDay();
+  let endPeriod = false;
+  if (curPeriodDay >= 6) {
+    endPeriod = confirm(`오늘(${curShortDate})이 생리 ${curPeriodDay}일차입니다.\n내일(${nextShortDate}) 일정에서는 생리가 종료된 것으로 처리할까요?\n\n[확인]: 생리 종료 처리 / [취소]: ${curPeriodDay + 1}일차로 연장`);
+  }
+
   const btn = document.getElementById('btnCloneTomorrow');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 깃허브 업로드 중...'; }
 
   try {
-    // 1. 데이터 깊은 복사 및 날짜/D-Day/치팅밀 갱신
+    // 1. 데이터 깊은 복사 및 날짜/D-Day/생리일차/치팅밀 갱신
     const nextConfig = JSON.parse(JSON.stringify(DailyConfig));
     nextConfig.storageKey = `penguin_chk_${ny}${nm}${nd}`;
     nextConfig.prevStampPoints = 0;
@@ -565,8 +604,16 @@ async function cloneToTomorrow() {
       nextConfig.dateLabel = `${nextDotDate} ${nextConfig.dateLabel}`;
     }
     nextConfig.dateLabel = updateCheatMealText(nextConfig.dateLabel, nextDate);
-    nextConfig.alert1HTML = updateDDayText(nextConfig.alert1HTML, nextDate);
-    nextConfig.alert2HTML = updateDDayText(nextConfig.alert2HTML, nextDate);
+
+    if (endPeriod && /생리/.test(nextConfig.badge2 || '')) {
+      nextConfig.badge2 = '';
+    } else {
+      nextConfig.badge2 = updateMenstruationText(nextConfig.badge2, false);
+    }
+    nextConfig.badge1 = updateMenstruationText(nextConfig.badge1, endPeriod);
+
+    nextConfig.alert1HTML = updateMenstruationText(updateDDayText(nextConfig.alert1HTML), endPeriod);
+    nextConfig.alert2HTML = updateMenstruationText(updateDDayText(nextConfig.alert2HTML), endPeriod);
 
     const nextS = JSON.parse(JSON.stringify(S));
     nextS.forEach(blk => {
@@ -576,27 +623,46 @@ async function cloneToTomorrow() {
     });
 
     const rawPreview = (typeof Preview !== 'undefined') ? Preview : (typeof W !== 'undefined' ? W : []);
-    const nextPreview = JSON.parse(JSON.stringify(rawPreview));
-    const matchNextRegex = new RegExp('^' + nextShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
+    const curMatchRegex = new RegExp('^' + curShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
+    const nextMatchRegex = new RegExp('^' + nextShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
+    const nextPreview = [];
 
-    nextPreview.forEach(w => {
+    rawPreview.forEach(origW => {
+      const w = JSON.parse(JSON.stringify(origW));
       delete w.today;
-      if (w.d && matchNextRegex.test(w.d.trim())) {
-        w.today = true;
+
+      // 오늘 날짜 전용 요약 행(targetDate 없음) 처리
+      if (w.d && curMatchRegex.test(w.d.trim()) && !w.targetDate) {
+        if (/생리\s*\d+일차/.test(w.t) && !endPeriod) {
+          w.d = `${nextShortDate} (${nextDow})`;
+          w.today = true;
+          w.t = updateMenstruationText(updateDDayText(w.t), false);
+          nextPreview.push(w);
+        }
+        return;
       }
+
       if (w.targetDate && /^\d{4}-\d{2}-\d{2}$/.test(w.targetDate)) {
+        if (w.targetDate < nextDateStr) {
+          return; // 이미 지난 일정 제외
+        }
         const [ty, tm, td] = w.targetDate.split('-').map(Number);
         const tDate = new Date(ty, tm - 1, td);
         const diff = Math.round((tDate.getTime() - nextDate.getTime()) / 86400000);
-        const dTag = diff === 0 ? 'D-Day' : (diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`);
+        const dTag = diff === 0 ? 'D-Day' : `D-${diff}`;
         if (/D-\d+|D-Day|D\+\d+/i.test(w.t)) {
           w.t = w.t.replace(/D-\d+|D-Day|D\+\d+/gi, dTag);
         } else {
           w.t = `${w.t} (${dTag})`;
         }
+        if (w.targetDate === nextDateStr) w.today = true;
       } else {
-        w.t = updateDDayText(w.t, nextDate);
+        w.t = updateDDayText(w.t);
+        if (w.d && nextMatchRegex.test(w.d.trim())) w.today = true;
       }
+
+      w.t = updateMenstruationText(w.t, endPeriod);
+      nextPreview.push(w);
     });
 
     // 2. JS 파일 문자열 직렬화
