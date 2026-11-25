@@ -594,20 +594,14 @@ async function initApp() {
   try { app = firebase.app(); } catch(e) { app = firebase.initializeApp(FIREBASE_CONFIG); }
   const db = firebase.database(app);
   _dbRef = db.ref('daily/' + DailyConfig.storageKey);
-  _tplRef = db.ref('config/templates');
+  _tplRef = db.ref('daily/_templates');
 
   try {
-    const [snap, tplSnap] = await Promise.all([_dbRef.get(), _tplRef.get()]);
+    const snap = await _dbRef.get();
     if (snap.exists()) {
       chk = snap.val() || {};
       try { localStorage.setItem(DailyConfig.storageKey, JSON.stringify(chk)); } catch(e) {}
       syncUIFromChk();
-    }
-    if (tplSnap.exists()) {
-      const tVal = tplSnap.val() || {};
-      templateConfig = { tpl1: tVal.tpl1 || '', tpl2: tVal.tpl2 || '' };
-      try { localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templateConfig)); } catch(e) {}
-      updateTemplateButtonsUI();
     }
     updateSyncStatus('online');
 
@@ -623,16 +617,25 @@ async function initApp() {
       }
     });
 
-    _tplRef.on('value', (snap) => {
-      if (_isSavingTpl) return;
-      const incomingTpl = snap.val() || {};
-      const nextTpl = { tpl1: incomingTpl.tpl1 || '', tpl2: incomingTpl.tpl2 || '' };
-      if (JSON.stringify(nextTpl) !== JSON.stringify(templateConfig)) {
-        templateConfig = nextTpl;
+    try {
+      const tplSnap = await _tplRef.get();
+      if (tplSnap.exists()) {
+        const tVal = tplSnap.val() || {};
+        templateConfig = { tpl1: tVal.tpl1 || '', tpl2: tVal.tpl2 || '' };
         try { localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templateConfig)); } catch(e) {}
         updateTemplateButtonsUI();
       }
-    });
+      _tplRef.on('value', (snap) => {
+        if (_isSavingTpl) return;
+        const incomingTpl = snap.val() || {};
+        const nextTpl = { tpl1: incomingTpl.tpl1 || '', tpl2: incomingTpl.tpl2 || '' };
+        if (JSON.stringify(nextTpl) !== JSON.stringify(templateConfig)) {
+          templateConfig = nextTpl;
+          try { localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templateConfig)); } catch(e) {}
+          updateTemplateButtonsUI();
+        }
+      });
+    } catch(e) {}
 
   } catch(e) {
     updateSyncStatus('offline');
