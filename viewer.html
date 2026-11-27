@@ -313,6 +313,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .pomo-memo { width: 100%; border: none; border-top: 1px dashed rgba(0,0,0,0.15); background: transparent; padding: 7px 0 0 0; margin-top: 7px; font-size: 12px; color: #2A2010; outline: none; font-family: inherit; }
 .pomo-memo::placeholder { color: #A09888; font-style: italic; }
 
+.alert-today {background:#EEF4FC;border:2px solid #3A78C8;border-radius:11px;padding:11px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
+.alert-today strong{color:#1E5098}
 .alert {background:#FFF3E0;border:2px solid #E08020;border-radius:11px;padding:11px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.65}
 .alert strong{color:#C05010}
 .alert-menses{background:#FEF0F5;border:2px solid #D06080;border-radius:11px;padding:11px 14px;margin-bottom:12px;font-size:12.5px;line-height:1.65}
@@ -408,7 +410,7 @@ input[type=checkbox]{margin-top:3px;flex-shrink:0;width:13px;height:13px;cursor:
   <div class="tpl-modal">
     <div class="tpl-modal-title">📑 복제 템플릿 지정</div>
     <div class="tpl-modal-desc">
-      저장된 일정표 중 템플릿 2개를 지정하세요. 설정은 Firebase로 모든 기기에 동기화되며, 복제 시 시간표만 템플릿에서 가져오고 치팅밀·생리·미리보기는 직전 최신 파일에서 이어받습니다.
+      저장된 일정표 중 템플릿 2개를 지정하세요. 설정은 Firebase로 모든 기기에 동기화되며, 복제 시 시간표만 템플릿에서 가져오고 치팅밀·생리·지속 공지·미리보기는 직전 최신 파일에서 이어받습니다.
     </div>
     <div class="tpl-field">
       <label for="selTpl1">📚 템플릿 1 — 별도 일정 없는 도서관 공부</label>
@@ -729,7 +731,6 @@ async function fetchScheduleJs(dateStr, token) {
       return parseScheduleScript(base64ToUtf8(data.content));
     }
   }
-  // API 실패 시 정적 파일 직접 요청 폴백
   const rawRes = await fetch(`${fileName}?t=${Date.now()}`);
   if (!rawRes.ok) throw new Error(`[${fileName}] 파일을 불러오지 못했습니다. (HTTP ${rawRes.status})`);
   const code = await rawRes.text();
@@ -775,6 +776,17 @@ function closeTemplateModal() {
   document.getElementById('tplModalBackdrop').classList.remove('open');
 }
 
+function getNumericAlertKeys(cfg) {
+  return Object.keys(cfg || {})
+    .map(k => {
+      const m = k.match(/^alert(\d+)HTML$/);
+      return m ? { key: k, num: parseInt(m[1], 10) } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.num - b.num)
+    .map(x => x.key);
+}
+
 function updateDDayByDiff(text, diffDays) {
   if (!text || diffDays === 0) return text;
   return text.replace(/(^|[\s(\[【])(D-(\d+)|D-Day|D\+(\d+))(?=$|[\s)\]】,.!?])/gi, (full, prefix, token, minusNum, plusNum) => {
@@ -799,8 +811,11 @@ function updateDDayByDiff(text, diffDays) {
 
 function detectMaxPeriodDayFromData(cfg, prevArr) {
   let maxD = 0;
+  const alertVals = Object.keys(cfg || {})
+    .filter(k => /^alert.*HTML$/i.test(k))
+    .map(k => cfg[k]);
   const sources = [
-    cfg.badge1, cfg.badge2, cfg.alert1HTML, cfg.alert2HTML,
+    cfg.badge1, cfg.badge2, ...alertVals,
     ...(Array.isArray(prevArr) ? prevArr.map(w => w.t) : [])
   ];
   sources.forEach(s => {
@@ -936,7 +951,6 @@ async function executeClone(mode, btnEl) {
     if (!token) return;
   }
 
-  // 템플릿 모드인데 미지정 상태면 모달 열기
   if (mode === 'tpl1' && !templateConfig.tpl1) {
     alert('📚 템플릿 1(기본 도서관)이 아직 지정되지 않았습니다. 템플릿을 선택해 주세요.');
     openTemplateModal();
@@ -1081,44 +1095,58 @@ async function executeClone(mode, btnEl) {
         : '📚 본진 도서관 출근';
     }
 
-    // 5-3. badge2 & alert2HTML (생리 상태는 stateData 기준 이어받기)
+    // 5-3. Alert 3분류 처리
+    // (A) 기존 alert 키 초기화 (원본의 구버전/당일 공지 찌꺼기 제거)
+    delete nextConfig.alertTodayHTML;
+    delete nextConfig.alertMensesHTML;
+    getNumericAlertKeys(nextConfig).forEach(k => delete nextConfig[k]);
+
+    // (B) alertTodayHTML: 당일 공지는 승계하지 않음 (단, 월요일 서브 도서관 안내만 자동 생성)
+    if (isMonday && usesLib && !usesHomeOnly) {
+      nextConfig.alertTodayHTML =
+        `<strong>⚠️ 【월요일 안내】 본진 도서관 정기 휴관일 → 서브 도서관(도보 40분·10시 개장) 이용</strong><br>` +
+        `템플릿 기준 시간표·목표 뽀모 수 오차에 유의하세요.`;
+    }
+
+    // (C) alert[숫자]HTML: 지속 공지 전체를 직전 최신 파일(stateCfg)에서 승계 + D-Day 보정
+    let legacyMensesFromAlert2 = '';
+    getNumericAlertKeys(stateCfg).forEach(k => {
+      const val = stateCfg[k];
+      if (!val) return;
+      // 구버전 호환: alert2HTML이 생리 안내였으면 alertMensesHTML로 이관
+      if (k === 'alert2HTML' && !stateCfg.alertMensesHTML && /생리/.test(val)) {
+        legacyMensesFromAlert2 = val;
+        return;
+      }
+      let cleaned = val.replace(/<span class="mon-sub-notice">[\s\S]*?<\/span>(?:<br>)?/gi, '');
+      cleaned = updateMenstruationByDiff(updateDDayByDiff(cleaned, diffDays), diffDays, endPeriod);
+      if (cleaned.trim()) nextConfig[k] = cleaned;
+    });
+
+    // (D) alertMensesHTML & badge2: 생리 전용 공지 (7일차부터 자동 제거)
+    const mensesSource = stateCfg.alertMensesHTML || legacyMensesFromAlert2;
     const stateBadge2Period = (stateCfg.badge2 || '').match(/생리\s*\d+일차/);
     if (curPeriodDay > 0) {
       if (endPeriod) {
         if (/생리/.test(nextConfig.badge2 || '')) nextConfig.badge2 = '';
-        nextConfig.alert2HTML = '';
       } else {
         const nextPeriodDay = curPeriodDay + diffDays;
         if (stateBadge2Period) {
           nextConfig.badge2 = `🩸 생리 ${nextPeriodDay}일차`;
         }
-        nextConfig.alert2HTML = updateMenstruationByDiff(
-          updateDDayByDiff(stateCfg.alert2HTML || '', diffDays),
-          diffDays,
-          false
-        );
+        if (mensesSource) {
+          nextConfig.alertMensesHTML = updateMenstruationByDiff(
+            updateDDayByDiff(mensesSource, diffDays),
+            diffDays,
+            false
+          );
+        }
       }
-    } else {
-      nextConfig.alert2HTML = stateCfg.alert2HTML || '';
+    } else if (mensesSource) {
+      nextConfig.alertMensesHTML = updateDDayByDiff(mensesSource, diffDays);
     }
 
-    // 5-4. alert1HTML (stateData 기준 + D-Day diffDays 보정 + 월요일 서브 도서관 배너 제어)
-    let nextAlert1 = updateMenstruationByDiff(
-      updateDDayByDiff(stateCfg.alert1HTML || '', diffDays),
-      diffDays,
-      endPeriod
-    );
-    // 기존 월요일 안내 배너 제거
-    nextAlert1 = nextAlert1.replace(/<span class="mon-sub-notice">[\s\S]*?<\/span>(?:<br>)?/gi, '');
-    if (isMonday && usesLib && !usesHomeOnly) {
-      const monBanner =
-        `<span class="mon-sub-notice"><strong>⚠️ 【월요일 안내】 본진 도서관 정기 휴관일 → 서브 도서관(도보 40분·10시 개장) 이용</strong> ` +
-        `(※ 템플릿 기준 시간표·목표 뽀모 수 오차 유의)</span><br>`;
-      nextAlert1 = monBanner + nextAlert1;
-    }
-    nextConfig.alert1HTML = nextAlert1;
-
-    // 5-5. S 블록 변환 (치팅밀, 비타민D, 가방 싸기, 월요일 서브 도서관 안내)
+    // 5-4. S 블록 변환 (치팅밀, 비타민D, 가방 싸기, 월요일 서브 도서관 안내)
     const isVitDDay = (isMonday || isThursday);
     const isVitDCheckItem = it => !/^【/.test(it) && /비타민\s*D/.test(it);
     const nextS = JSON.parse(JSON.stringify(sourceData.S));
@@ -1167,7 +1195,6 @@ async function executeClone(mode, btnEl) {
         });
       }
 
-      // 월요일 서브 도서관 출근·귀가 안내 자동 보완
       if (blk.id === 'transitLib') {
         if (isMonday && !usesHomeOnly) {
           if (blk.title.includes('본진 도서관')) {
@@ -1217,7 +1244,7 @@ async function executeClone(mode, btnEl) {
       }
     });
 
-    // 5-6. Preview 배열 변환 (stateData.Preview 기준 + diffDays + 월·목 스터디 예정일 자동 갱신)
+    // 5-5. Preview 배열 변환 (stateData.Preview 기준 + diffDays + 월·목 스터디 예정일 자동 갱신)
     const stateMatchRegex = new RegExp('^' + stateShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
     const targetMatchRegex = new RegExp('^' + targetShortDate.replace('/', '\\/') + '(?:\\s|\\(|$)');
     const nextPreview = [];
@@ -1227,14 +1254,13 @@ async function executeClone(mode, btnEl) {
       const w = JSON.parse(JSON.stringify(origW));
       delete w.today;
 
-      // 매주 월·목 온라인 스터디 예정일 2건 자동 갱신
       if (w.d && /월·목/.test(w.d) && /온라인 스터디/.test(w.t || '')) {
         w.t = w.t.replace(/예정:\s*[^)]+\)?(?:\s*,\s*[^)]+\)?)?/, `예정: ${nextStudyDates[0]}, ${nextStudyDates[1]}`);
+        if (isMonday || isThursday) w.today = true;
         nextPreview.push(w);
         return;
       }
 
-      // 기준 날짜 전용 요약 행(targetDate 없음) 처리
       if (w.d && stateMatchRegex.test(w.d.trim()) && !w.targetDate) {
         if (/생리\s*\d+일차/.test(w.t) && !endPeriod) {
           w.d = `${targetShortDate} (${targetDow})`;
@@ -1247,7 +1273,7 @@ async function executeClone(mode, btnEl) {
 
       if (w.targetDate && /^\d{4}-\d{2}-\d{2}$/.test(w.targetDate)) {
         if (w.targetDate < targetDateStr) {
-          return; // 이미 지난 일정 제외
+          return;
         }
         const tDate = parseYMD(w.targetDate);
         const diff = Math.round((tDate.getTime() - targetDate.getTime()) / 86400000);
@@ -1414,7 +1440,6 @@ function updateStats(){
     if (cAllLblEl) cAllLblEl.textContent = '루틴';
     document.getElementById('cAll').textContent = routineDone + '/' + routineTotal;
   } else {
-    // 구버전(.js) 하위 호환 유지
     const totalItemsDone = routineDone + rsvDone;
     const pct = routineTotal > 0 ? Math.round((totalItemsDone / routineTotal) * 100) : 0;
     
@@ -1534,13 +1559,30 @@ function render(){
   btnT2.addEventListener('click', () => executeClone('tpl2', btnT2));
   updateTemplateButtonsUI();
 
-  if(DailyConfig.alert1HTML) {
-    const al = document.createElement('div'); al.className = 'alert';
-    al.innerHTML = DailyConfig.alert1HTML; root.appendChild(al);
+  // ── 🔔 Alert 3분류 렌더링 (오늘 전용 -> 지속 alert[숫자] -> 생리 전용) ──
+  if (DailyConfig.alertTodayHTML) {
+    const alToday = document.createElement('div');
+    alToday.className = 'alert-today';
+    alToday.innerHTML = DailyConfig.alertTodayHTML;
+    root.appendChild(alToday);
   }
-  if(DailyConfig.alert2HTML) {
-    const al2 = document.createElement('div'); al2.className = 'alert-menses';
-    al2.innerHTML = DailyConfig.alert2HTML; root.appendChild(al2);
+
+  getNumericAlertKeys(DailyConfig).forEach(k => {
+    const html = DailyConfig[k];
+    if (!html) return;
+    // 구버전 호환: alert2HTML이 생리 안내이고 alertMensesHTML이 없을 때 분홍색 스타일 폴백
+    const isLegacyMenses = (k === 'alert2HTML' && !DailyConfig.alertMensesHTML && /생리/.test(html));
+    const al = document.createElement('div');
+    al.className = isLegacyMenses ? 'alert-menses' : 'alert';
+    al.innerHTML = html;
+    root.appendChild(al);
+  });
+
+  if (DailyConfig.alertMensesHTML) {
+    const alM = document.createElement('div');
+    alM.className = 'alert-menses';
+    alM.innerHTML = DailyConfig.alertMensesHTML;
+    root.appendChild(alM);
   }
 
   // ── 💮 도장판 UI 생성 ──
